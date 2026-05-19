@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRISIS SIM // PLATAFORMA DE SIMULACIÓN ACADÉMICA</title>
+<title>CRISIS SIM v2.0 // PLATAFORMA DE SIMULACIÓN ACADÉMICA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -29,7 +29,6 @@
   --font-cond: 'Barlow Condensed', sans-serif;
   --font-body: 'Barlow', sans-serif;
   --glow-cyan: 0 0 14px rgba(56,189,248,0.35);
-  --glow-red: 0 0 14px rgba(248,113,113,0.4);
   --glow-amber: 0 0 14px rgba(251,191,36,0.35);
 }
 
@@ -44,7 +43,6 @@ body {
   height: 100vh;
 }
 
-/* SCANLINES OVERLAY */
 body::before {
   content: '';
   position: fixed; inset: 0;
@@ -53,8 +51,8 @@ body::before {
   z-index: 9999;
 }
 
-/* LOGIN SCREEN */
-#login-screen {
+/* LANDING */
+#landing-screen {
   position: fixed; inset: 0;
   background: linear-gradient(145deg, #141e30 0%, #1c2d48 50%, #162038 100%);
   background-image:
@@ -64,926 +62,688 @@ body::before {
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
   flex-direction: column;
-  gap: 0;
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 40px;
+.landing-header { text-align: center; margin-bottom: 36px; }
+.landing-header .sys-label {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--accent-cyan); letter-spacing: 6px;
+  opacity: 0.7; margin-bottom: 10px;
+}
+.landing-header h1 {
+  font-family: var(--font-cond); font-size: 52px;
+  font-weight: 900; letter-spacing: 4px; line-height: 1;
+}
+.landing-header h1 span { color: var(--accent-cyan); }
+.landing-header .subtitle {
+  font-family: var(--font-cond); font-size: 14px; font-weight: 300;
+  color: var(--text-secondary); letter-spacing: 3px; margin-top: 8px;
+}
+.landing-header .version {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--accent-amber); margin-top: 8px; letter-spacing: 2px;
 }
 
-.login-header .sys-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
+.entry-cards {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; max-width: 720px;
+}
+
+.entry-card {
+  background: rgba(35,45,64,0.92);
+  border: 1px solid var(--border-bright);
+  padding: 28px 32px; cursor: pointer;
+  transition: all 0.2s; backdrop-filter: blur(8px);
+  text-align: left;
+}
+.entry-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+.entry-card.director { border-top: 3px solid var(--accent-amber); }
+.entry-card.participant { border-top: 3px solid var(--accent-cyan); }
+
+.entry-card .ec-icon { font-size: 32px; margin-bottom: 12px; }
+.entry-card .ec-code {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 3px; margin-bottom: 6px;
+}
+.entry-card.director .ec-code { color: var(--accent-amber); }
+.entry-card.participant .ec-code { color: var(--accent-cyan); }
+.entry-card .ec-title {
+  font-family: var(--font-cond); font-size: 22px;
+  font-weight: 700; letter-spacing: 1px; margin-bottom: 6px;
+}
+.entry-card .ec-desc {
+  font-size: 12px; color: var(--text-secondary); line-height: 1.4;
+}
+
+/* DIRECTOR SETUP */
+#director-setup {
+  display: none;
+  position: fixed; inset: 0;
+  background: linear-gradient(145deg, #141e30 0%, #1c2d48 50%, #162038 100%);
+  z-index: 999; overflow-y: auto; padding: 40px 20px;
+}
+
+.setup-container { max-width: 900px; margin: 0 auto; }
+
+.setup-header {
+  margin-bottom: 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.setup-header h2 {
+  font-family: var(--font-cond); font-size: 32px;
+  font-weight: 900; letter-spacing: 3px;
+}
+.setup-header h2 span { color: var(--accent-amber); }
+
+.back-btn {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 2px; padding: 6px 12px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer;
+}
+.back-btn:hover { color: var(--text-primary); border-color: var(--border-bright); }
+
+.setup-step {
+  background: rgba(35,45,64,0.85);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent-amber);
+  padding: 24px 28px; margin-bottom: 20px;
+  position: relative;
+}
+.setup-step::before {
+  content: attr(data-step);
+  position: absolute; top: -12px; left: 18px;
+  background: var(--accent-amber); color: var(--bg-deep);
+  font-family: var(--font-mono); font-size: 10px;
+  font-weight: 700; letter-spacing: 2px; padding: 3px 10px;
+}
+
+.setup-step h3 {
+  font-family: var(--font-cond); font-size: 18px;
+  font-weight: 700; letter-spacing: 2px; margin-bottom: 6px;
+}
+.setup-step .step-desc {
+  font-size: 12px; color: var(--text-secondary); margin-bottom: 18px;
+}
+
+.scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.scenario-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 16px 18px; cursor: pointer;
+}
+.scenario-card:hover { background: var(--bg-hover); border-color: var(--border-bright); }
+.scenario-card.selected { border-color: var(--accent-amber); background: rgba(251,191,36,0.08); }
+.scenario-card .sc-icon { font-size: 24px; margin-bottom: 8px; }
+.scenario-card .sc-title { font-family: var(--font-cond); font-size: 16px; font-weight: 700; }
+.scenario-card .sc-desc {
+  font-size: 11px; color: var(--text-secondary);
+  margin-top: 4px; line-height: 1.4;
+}
+.scenario-card .sc-tags {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--accent-amber); margin-top: 8px; letter-spacing: 1px;
+}
+
+.role-builder { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.role-row {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 12px 14px;
+  display: grid; grid-template-columns: 60px 200px 1fr 30px;
+  gap: 10px; align-items: center;
+}
+.role-row .role-num {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--accent-amber); letter-spacing: 2px;
+}
+.role-row input[type="text"] {
+  background: var(--bg-deep); border: 1px solid var(--border);
+  color: var(--text-primary); padding: 6px 10px;
+  font-family: var(--font-body); font-size: 13px; outline: none;
+}
+.role-row input[type="text"]:focus { border-color: var(--accent-amber); }
+
+.tag-selector { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag-chip {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 1px; padding: 3px 7px;
+  border: 1px solid var(--border); background: var(--bg-deep);
+  color: var(--text-dim); cursor: pointer; user-select: none;
+}
+.tag-chip:hover { color: var(--text-secondary); border-color: var(--border-bright); }
+.tag-chip.active {
+  background: rgba(56,189,248,0.15);
+  border-color: var(--accent-cyan);
   color: var(--accent-cyan);
-  letter-spacing: 6px;
-  text-transform: uppercase;
-  opacity: 0.7;
-  margin-bottom: 10px;
 }
 
-.login-header h1 {
-  font-family: var(--font-cond);
-  font-size: 52px;
-  font-weight: 900;
-  color: var(--text-primary);
-  letter-spacing: 4px;
-  line-height: 1;
+.role-row .remove-role {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 26px; height: 26px;
+  cursor: pointer; font-size: 14px;
 }
+.role-row .remove-role:hover { color: var(--accent-red); border-color: var(--accent-red); }
 
-.login-header h1 span { color: var(--accent-cyan); }
+.add-role-btn {
+  background: transparent; border: 1px dashed var(--border-bright);
+  color: var(--text-secondary); padding: 10px;
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 600; letter-spacing: 2px; cursor: pointer; width: 100%;
+}
+.add-role-btn:hover { color: var(--accent-amber); border-color: var(--accent-amber); }
 
-.login-header .subtitle {
-  font-family: var(--font-cond);
-  font-size: 14px;
-  font-weight: 300;
-  color: var(--text-secondary);
-  letter-spacing: 3px;
+.preset-btns { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.preset-btn {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 2px; padding: 5px 10px;
+  background: var(--bg-deep); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer;
+}
+.preset-btn:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+
+.launch-btn {
+  width: 100%; background: var(--accent-amber); color: var(--bg-deep);
+  border: none; padding: 16px;
+  font-family: var(--font-cond); font-size: 18px;
+  font-weight: 900; letter-spacing: 4px; cursor: pointer;
   margin-top: 8px;
 }
+.launch-btn:hover { background: #ffc94a; box-shadow: var(--glow-amber); }
 
-.login-box {
+.session-code-display {
+  background: var(--bg-deep); border: 1px solid var(--accent-cyan);
+  padding: 16px; text-align: center; margin-top: 12px;
+}
+.session-code-display .sc-label {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary); letter-spacing: 3px; margin-bottom: 6px;
+}
+.session-code-display .sc-code {
+  font-family: var(--font-mono); font-size: 28px;
+  color: var(--accent-cyan); letter-spacing: 8px; font-weight: 700;
+}
+
+/* PARTICIPANT LOGIN */
+#participant-login {
+  display: none;
+  position: fixed; inset: 0;
+  background: linear-gradient(145deg, #141e30 0%, #1c2d48 50%, #162038 100%);
+  z-index: 999;
+  align-items: center; justify-content: center;
+  flex-direction: column; padding: 20px;
+}
+#participant-login.show { display: flex; }
+
+.plogin-box {
   background: rgba(35,45,64,0.92);
   border: 1px solid var(--border-bright);
   border-top: 2px solid var(--accent-cyan);
-  padding: 32px 36px;
-  width: 480px;
-  position: relative;
+  padding: 32px; max-width: 540px; width: 100%;
   backdrop-filter: blur(8px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
 }
 
-.login-box::before {
-  content: 'SELECCIÓN DE ROL';
-  position: absolute;
-  top: -9px; left: 20px;
-  background: var(--bg-panel);
-  padding: 0 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent-cyan);
-  letter-spacing: 3px;
+.plogin-box h2 {
+  font-family: var(--font-cond); font-size: 22px;
+  font-weight: 700; letter-spacing: 2px; margin-bottom: 6px;
+}
+.plogin-box .plogin-desc {
+  font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;
 }
 
-.role-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
+.session-input {
+  width: 100%; background: var(--bg-deep);
+  border: 1px solid var(--border); color: var(--accent-cyan);
+  padding: 14px; font-family: var(--font-mono);
+  font-size: 22px; letter-spacing: 6px; text-align: center;
+  outline: none; text-transform: uppercase; margin-bottom: 16px;
+}
+.session-input:focus { border-color: var(--accent-cyan); }
+
+.plogin-roles {
+  display: none; flex-direction: column; gap: 6px;
+  margin-bottom: 16px; max-height: 50vh; overflow-y: auto;
+}
+.plogin-roles.show { display: flex; }
+
+.plogin-role-btn {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 12px 16px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+}
+.plogin-role-btn:hover { border-color: var(--accent-cyan); background: var(--bg-hover); }
+.plogin-role-btn.selected { border-color: var(--accent-cyan); background: rgba(56,189,248,0.08); }
+
+.plogin-role-btn .pr-num {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--accent-cyan); width: 50px;
+}
+.plogin-role-btn .pr-name {
+  font-family: var(--font-cond); font-size: 15px;
+  font-weight: 600; letter-spacing: 1px; flex: 1;
+}
+.plogin-role-btn .pr-status {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 1px; color: var(--accent-green);
 }
 
-.role-btn {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 14px 16px;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s;
-  position: relative;
-  overflow: hidden;
+.btn-primary {
+  width: 100%; background: var(--accent-cyan); color: var(--bg-deep);
+  border: none; padding: 14px;
+  font-family: var(--font-cond); font-size: 15px;
+  font-weight: 700; letter-spacing: 4px; cursor: pointer;
 }
-
-.role-btn:hover { border-color: var(--accent-cyan); background: var(--bg-hover); }
-.role-btn.selected { border-color: var(--accent-cyan); background: rgba(0,200,224,0.08); box-shadow: var(--glow-cyan); }
-
-.role-btn .role-code {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--accent-cyan);
-  letter-spacing: 2px;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.role-btn .role-name {
-  font-family: var(--font-cond);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.5px;
-}
-
-.role-btn .role-dept {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
-
-.role-btn.facilitator { grid-column: 1 / -1; border-color: var(--accent-amber); }
-.role-btn.facilitator:hover { background: rgba(240,165,0,0.08); }
-.role-btn.facilitator.selected { background: rgba(240,165,0,0.1); box-shadow: var(--glow-amber); }
-.role-btn.facilitator .role-code { color: var(--accent-amber); }
-
-.enter-btn {
-  width: 100%;
-  background: var(--accent-cyan);
-  color: var(--bg-deep);
-  border: none;
-  padding: 14px;
-  font-family: var(--font-cond);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 0.2s;
-}
-.enter-btn:hover { background: #00e8ff; box-shadow: var(--glow-cyan); }
-.enter-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-.scenario-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-secondary);
-  text-align: center;
-  margin-top: 16px;
-  letter-spacing: 1px;
-}
-.scenario-label span { color: var(--accent-amber); }
+.btn-primary:hover { background: #58cdf8; }
 
 /* MAIN APP */
 #app { display: none; height: 100vh; flex-direction: column; }
+#app.show { display: flex; }
 
-/* TOP BAR */
 .topbar {
   height: 48px;
   background: linear-gradient(90deg, #1e2d44 0%, #243250 100%);
   border-bottom: 1px solid var(--border-bright);
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  gap: 16px;
-  flex-shrink: 0;
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 16px; flex-shrink: 0;
   box-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
 
 .topbar-logo {
-  font-family: var(--font-cond);
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: var(--text-primary);
+  font-family: var(--font-cond); font-size: 18px;
+  font-weight: 900; letter-spacing: 2px;
 }
 .topbar-logo span { color: var(--accent-cyan); }
 
 .topbar-sep { width: 1px; height: 24px; background: var(--border); }
 
 .scenario-badge {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent-amber);
-  letter-spacing: 1px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--accent-amber); letter-spacing: 1px;
   padding: 3px 8px;
-  border: 1px solid rgba(240,165,0,0.3);
-  background: rgba(240,165,0,0.05);
+  border: 1px solid rgba(251,191,36,0.3);
+  background: rgba(251,191,36,0.05);
 }
 
 .role-badge {
-  font-family: var(--font-cond);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  padding: 3px 10px;
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 600; letter-spacing: 1px; padding: 3px 10px;
   border: 1px solid var(--border-bright);
-  background: var(--bg-card);
-  color: var(--accent-cyan);
+  background: var(--bg-card); color: var(--accent-cyan);
 }
+.role-badge.director { color: var(--accent-amber); border-color: var(--accent-amber); }
 
-.topbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
 
-.sim-clock {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--text-primary);
-  letter-spacing: 2px;
-}
-
+.sim-clock { font-family: var(--font-mono); font-size: 14px; letter-spacing: 2px; }
 .sim-clock .sim-date {
-  font-size: 10px;
-  color: var(--text-secondary);
-  display: block;
-  text-align: right;
+  font-size: 10px; color: var(--text-secondary);
+  display: block; text-align: right;
 }
 
 .alert-level {
-  font-family: var(--font-cond);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  padding: 4px 12px;
-  background: rgba(224,48,48,0.15);
-  border: 1px solid var(--accent-red);
-  color: var(--accent-red);
+  font-family: var(--font-cond); font-size: 12px;
+  font-weight: 700; letter-spacing: 3px; padding: 4px 12px;
+  background: rgba(248,113,113,0.15);
+  border: 1px solid var(--accent-red); color: var(--accent-red);
   animation: pulse-border 2s ease-in-out infinite;
 }
-
 @keyframes pulse-border {
-  0%,100% { border-color: var(--accent-red); box-shadow: 0 0 6px rgba(224,48,48,0.3); }
-  50% { border-color: rgba(224,48,48,0.4); box-shadow: none; }
+  0%,100% { border-color: var(--accent-red); }
+  50% { border-color: rgba(248,113,113,0.4); }
 }
 
 .exit-btn {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 2px;
-  padding: 4px 10px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 2px; padding: 4px 10px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer;
 }
 .exit-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
 
-/* NAV TABS */
+.role-tags { display: flex; gap: 4px; flex-wrap: wrap; max-width: 280px; }
+.role-tag-mini {
+  font-family: var(--font-mono); font-size: 8px;
+  letter-spacing: 1px; padding: 2px 6px;
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.3);
+  color: var(--accent-cyan);
+}
+
 .nav-tabs {
   height: 38px;
   background: linear-gradient(90deg, #1e2d44 0%, #243250 100%);
   border-bottom: 1px solid var(--border-bright);
-  display: flex;
-  align-items: flex-end;
-  padding: 0 16px;
-  gap: 4px;
-  flex-shrink: 0;
+  display: flex; align-items: flex-end;
+  padding: 0 16px; gap: 4px; flex-shrink: 0;
 }
 
 .nav-tab {
-  font-family: var(--font-cond);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  padding: 6px 16px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-bottom: none;
-  color: var(--text-secondary);
-  background: transparent;
-  transition: all 0.15s;
-  position: relative;
+  font-family: var(--font-cond); font-size: 12px;
+  font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  padding: 6px 16px; cursor: pointer;
+  border: 1px solid transparent; border-bottom: none;
+  color: var(--text-secondary); background: transparent;
 }
 .nav-tab:hover { color: var(--text-primary); background: var(--bg-card); }
 .nav-tab.active {
-  color: var(--accent-cyan);
-  background: var(--bg-card);
+  color: var(--accent-cyan); background: var(--bg-card);
   border-color: var(--border);
   border-bottom: 2px solid var(--bg-card);
   margin-bottom: -1px;
 }
 
-.nav-tab .tab-badge {
-  display: inline-block;
-  background: var(--accent-red);
-  color: white;
-  font-size: 9px;
-  padding: 1px 4px;
-  border-radius: 2px;
-  margin-left: 5px;
-  font-family: var(--font-mono);
-  animation: pulse-bg 1.5s ease-in-out infinite;
+.locked-notice {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 24px 28px; margin: 24px; text-align: center;
+  border-left: 3px solid var(--accent-amber);
+}
+.locked-notice .ln-icon { font-size: 32px; margin-bottom: 10px; }
+.locked-notice .ln-title {
+  font-family: var(--font-cond); font-size: 18px;
+  font-weight: 700; letter-spacing: 2px; margin-bottom: 6px;
+}
+.locked-notice .ln-desc {
+  font-size: 12px; color: var(--text-secondary);
+  max-width: 480px; margin: 0 auto;
+}
+.locked-notice .ln-tags {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--accent-amber); margin-top: 12px; letter-spacing: 2px;
 }
 
-@keyframes pulse-bg {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* MAIN CONTENT */
-.main-content {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-}
-
+.main-content { flex: 1; overflow: hidden; display: flex; }
 .tab-view { display: none; width: 100%; height: 100%; }
 .tab-view.active { display: flex; }
 
-/* ═══════════════════════════════════════
-   VISTA: SITUACIÓN OPERACIONAL (Mapa)
-═══════════════════════════════════════ */
-#view-sitrep {
-  display: none;
-}
-#view-sitrep.active {
-  display: grid;
-  grid-template-columns: 260px 1fr 280px;
-  overflow: hidden;
-}
-
-.sitrep-left {
+/* SITREP */
+#view-sitrep { display: none; }
+#view-sitrep.active { display: grid; grid-template-columns: 260px 1fr 280px; overflow: hidden; }
+.sitrep-left, .sitrep-right {
   background: var(--bg-panel);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+  display: flex; flex-direction: column; overflow-y: auto;
 }
+.sitrep-left { border-right: 1px solid var(--border); }
+.sitrep-right { border-left: 1px solid var(--border); }
 
-.panel-section {
-  border-bottom: 1px solid var(--border);
-  padding: 12px;
-}
-
+.panel-section { border-bottom: 1px solid var(--border); padding: 12px; }
 .panel-section-title {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-dim);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 10px;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-dim); letter-spacing: 3px; margin-bottom: 10px;
 }
 
 .incident-item {
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  margin-bottom: 6px;
+  padding: 8px 10px; border: 1px solid var(--border);
+  background: var(--bg-card); margin-bottom: 6px;
   cursor: pointer;
-  transition: all 0.15s;
-  position: relative;
 }
 .incident-item:hover { border-color: var(--border-bright); background: var(--bg-hover); }
 .incident-item.critical { border-left: 3px solid var(--accent-red); }
 .incident-item.warning  { border-left: 3px solid var(--accent-amber); }
 .incident-item.info     { border-left: 3px solid var(--accent-blue); }
-
 .incident-item .inc-type {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  margin-bottom: 2px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 2px; margin-bottom: 2px;
 }
 .critical .inc-type { color: var(--accent-red); }
-.warning  .inc-type { color: var(--accent-amber); }
-.info     .inc-type { color: var(--accent-blue); }
-
+.warning .inc-type { color: var(--accent-amber); }
+.info .inc-type { color: var(--accent-blue); }
 .incident-item .inc-title {
-  font-family: var(--font-cond);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.2;
+  font-family: var(--font-cond); font-size: 14px;
+  font-weight: 600; line-height: 1.2;
 }
-
 .incident-item .inc-meta {
-  font-size: 10px;
-  color: var(--text-secondary);
-  margin-top: 3px;
-  display: flex;
-  justify-content: space-between;
+  font-size: 10px; color: var(--text-secondary);
+  margin-top: 3px; display: flex; justify-content: space-between;
 }
 
-.stat-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
 .stat-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 8px 10px;
-  text-align: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 8px 10px; text-align: center;
 }
-
 .stat-box .stat-val {
-  font-family: var(--font-mono);
-  font-size: 22px;
-  color: var(--text-primary);
-  display: block;
-  line-height: 1;
+  font-family: var(--font-mono); font-size: 22px;
+  display: block; line-height: 1;
 }
 .stat-box .stat-val.red { color: var(--accent-red); }
 .stat-box .stat-val.amber { color: var(--accent-amber); }
 .stat-box .stat-val.green { color: var(--accent-green); }
-
 .stat-box .stat-label {
-  font-family: var(--font-cond);
-  font-size: 11px;
-  color: var(--text-secondary);
-  letter-spacing: 1px;
-  margin-top: 2px;
+  font-family: var(--font-cond); font-size: 11px;
+  color: var(--text-secondary); letter-spacing: 1px; margin-top: 2px;
 }
 
-/* MAP */
-.map-container {
-  position: relative;
-  overflow: hidden;
-}
-
-#crisis-map {
-  width: 100%;
-  height: 100%;
-}
-
-.map-overlay-top {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 500;
-  display: flex;
-  gap: 6px;
-}
-
-.map-layer-btn {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  padding: 4px 10px;
-  background: rgba(8,12,16,0.85);
-  border: 1px solid var(--border-bright);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s;
-  backdrop-filter: blur(4px);
-}
-.map-layer-btn:hover, .map-layer-btn.active {
-  color: var(--accent-cyan);
-  border-color: var(--accent-cyan);
-}
-
-.sitrep-right {
-  background: var(--bg-panel);
-  border-left: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
+.map-container { position: relative; overflow: hidden; }
+#crisis-map { width: 100%; height: 100%; }
 
 .timeline-item {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  gap: 10px;
-  position: relative;
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  display: flex; gap: 10px; position: relative;
 }
-
 .timeline-item::before {
-  content: '';
-  position: absolute;
-  left: 30px;
-  top: 0;
-  bottom: -1px;
-  width: 1px;
-  background: var(--border);
+  content: ''; position: absolute;
+  left: 30px; top: 0; bottom: -1px; width: 1px; background: var(--border);
 }
-
 .tl-time {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-secondary);
-  width: 42px;
-  flex-shrink: 0;
-  padding-top: 2px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary); width: 42px;
+  flex-shrink: 0; padding-top: 2px;
 }
-
 .tl-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-top: 4px;
-  flex-shrink: 0;
-  z-index: 1;
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 4px; flex-shrink: 0; z-index: 1;
 }
 .tl-dot.red { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
 .tl-dot.amber { background: var(--accent-amber); }
 .tl-dot.blue { background: var(--accent-blue); }
 .tl-dot.green { background: var(--accent-green); }
-
-.tl-content {
-  flex: 1;
-}
+.tl-content { flex: 1; }
 .tl-content .tl-title {
-  font-family: var(--font-cond);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.2;
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 600; line-height: 1.2;
 }
 .tl-content .tl-desc {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-  line-height: 1.4;
+  font-size: 11px; color: var(--text-secondary);
+  margin-top: 2px; line-height: 1.4;
 }
 
-/* ═══════════════════════════════════════
-   VISTA: COMUNICACIONES
-═══════════════════════════════════════ */
-#view-comms {
-  display: none;
-}
-#view-comms.active {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  overflow: hidden;
-  gap: 0;
-}
+/* COMMS */
+#view-comms { display: none; }
+#view-comms.active { display: grid; overflow: hidden; }
+#view-comms.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+#view-comms.cols-2 { grid-template-columns: 1fr 1fr; }
+#view-comms.cols-1 { grid-template-columns: 1fr; }
 
 .comm-panel {
   border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  display: flex; flex-direction: column;
+  height: 100%; overflow: hidden;
 }
 .comm-panel:last-child { border-right: none; }
 
 .comm-header {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
-
 .comm-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  border-radius: 4px;
-  flex-shrink: 0;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; border-radius: 4px;
 }
 .comm-icon.whatsapp { background: rgba(0,200,112,0.15); }
-.comm-icon.twitter  { background: rgba(29,155,240,0.15); }
-.comm-icon.sms      { background: rgba(128,96,255,0.15); }
-
+.comm-icon.twitter { background: rgba(29,155,240,0.15); }
+.comm-icon.sms { background: rgba(167,139,250,0.15); }
 .comm-header .comm-title {
-  font-family: var(--font-cond);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-family: var(--font-cond); font-size: 16px;
+  font-weight: 700; letter-spacing: 1px;
 }
 .comm-header .comm-subtitle {
-  font-size: 10px;
-  color: var(--text-secondary);
-  margin-top: 1px;
+  font-size: 10px; color: var(--text-secondary); margin-top: 1px;
 }
-
 .comm-count {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-secondary);
+  margin-left: auto; font-family: var(--font-mono);
+  font-size: 10px; color: var(--text-secondary);
 }
 
 .messages-feed {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex: 1; overflow-y: auto; padding: 10px;
+  display: flex; flex-direction: column; gap: 6px;
 }
 
-.messages-feed::-webkit-scrollbar { width: 3px; }
-.messages-feed::-webkit-scrollbar-track { background: transparent; }
-.messages-feed::-webkit-scrollbar-thumb { background: var(--border); }
-
-/* WhatsApp messages */
 .wa-msg {
-  max-width: 85%;
-  padding: 7px 10px;
-  border-radius: 2px;
-  font-size: 12px;
-  line-height: 1.4;
-  position: relative;
+  max-width: 85%; padding: 7px 10px; border-radius: 2px;
+  font-size: 12px; line-height: 1.4;
 }
-
 .wa-msg.incoming {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  align-self: flex-start;
-  border-bottom-left-radius: 0;
+  background: var(--bg-card); border: 1px solid var(--border);
+  align-self: flex-start; border-bottom-left-radius: 0;
 }
-
 .wa-msg.outgoing {
-  background: rgba(0,200,112,0.12);
-  border: 1px solid rgba(0,200,112,0.2);
-  align-self: flex-end;
-  border-bottom-right-radius: 0;
+  background: rgba(52,211,153,0.12);
+  border: 1px solid rgba(52,211,153,0.25);
+  align-self: flex-end; border-bottom-right-radius: 0;
 }
-
 .wa-msg .msg-sender {
-  font-family: var(--font-cond);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent-green);
-  margin-bottom: 2px;
+  font-family: var(--font-cond); font-size: 11px;
+  font-weight: 700; color: var(--accent-green); margin-bottom: 2px;
 }
 .wa-msg.outgoing .msg-sender { color: var(--accent-cyan); }
-
 .wa-msg .msg-text { color: var(--text-primary); }
-
 .wa-msg .msg-time {
-  font-size: 9px;
-  color: var(--text-secondary);
-  text-align: right;
-  margin-top: 3px;
-  font-family: var(--font-mono);
+  font-size: 9px; color: var(--text-secondary);
+  text-align: right; margin-top: 3px; font-family: var(--font-mono);
 }
-
 .wa-msg.system {
-  background: transparent;
-  border: 1px solid var(--border);
-  align-self: center;
-  max-width: 100%;
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-dim);
-  letter-spacing: 1px;
-  padding: 3px 10px;
+  background: transparent; border: 1px solid var(--border);
+  align-self: center; max-width: 100%; text-align: center;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-dim); letter-spacing: 1px; padding: 3px 10px;
 }
 
-/* Twitter feed */
 .tweet {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--bg-card); border: 1px solid var(--border);
   padding: 10px 12px;
-  transition: border-color 0.15s;
 }
-.tweet:hover { border-color: var(--border-bright); }
-
-.tweet-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.tweet-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--border-bright);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-cond);
-  font-size: 13px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.tweet-meta .tweet-name {
-  font-family: var(--font-cond);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-}
-.tweet-meta .tweet-handle {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-secondary);
-}
-
-.tweet-text {
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text-primary);
-}
-
-.tweet-text .hashtag { color: var(--accent-blue); }
-.tweet-text .mention { color: var(--accent-cyan); }
-
-.tweet-footer {
-  display: flex;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.tweet-stat {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.tweet-time {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-dim);
-}
-
 .tweet.urgent {
   border-left: 3px solid var(--accent-red);
-  background: rgba(224,48,48,0.05);
+  background: rgba(248,113,113,0.05);
 }
-
-/* SMS */
-.sms-msg {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 10px 12px;
-  border-left: 3px solid var(--accent-purple);
+.tweet-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.tweet-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 700; flex-shrink: 0;
 }
-
-.sms-from {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--accent-purple);
-  letter-spacing: 2px;
-  margin-bottom: 4px;
+.tweet-meta .tweet-name {
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 700; line-height: 1;
 }
-
-.sms-text {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--text-primary);
-}
-
-.sms-meta {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 5px;
-  font-family: var(--font-mono);
-  font-size: 9px;
+.tweet-meta .tweet-handle {
+  font-family: var(--font-mono); font-size: 10px;
   color: var(--text-secondary);
+}
+.tweet-text { font-size: 12px; line-height: 1.5; }
+.tweet-text .hashtag { color: var(--accent-blue); }
+.tweet-text .mention { color: var(--accent-cyan); }
+.tweet-footer { display: flex; gap: 16px; margin-top: 8px; }
+.tweet-time {
+  margin-left: auto; font-family: var(--font-mono);
+  font-size: 9px; color: var(--text-dim);
+}
+
+.sms-msg {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 10px 12px; border-left: 3px solid var(--accent-purple);
+}
+.sms-from {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--accent-purple); letter-spacing: 2px; margin-bottom: 4px;
+}
+.sms-text { font-size: 12px; line-height: 1.4; }
+.sms-meta {
+  display: flex; justify-content: space-between; margin-top: 5px;
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary);
 }
 
 .comm-input-area {
-  padding: 10px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
+  padding: 10px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px; flex-shrink: 0;
 }
-
 .comm-input {
-  flex: 1;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  padding: 7px 10px;
-  font-family: var(--font-body);
-  font-size: 12px;
-  outline: none;
-  transition: border-color 0.15s;
+  flex: 1; background: var(--bg-card);
+  border: 1px solid var(--border); color: var(--text-primary);
+  padding: 7px 10px; font-family: var(--font-body); font-size: 12px; outline: none;
 }
-.comm-input:focus { border-color: var(--border-bright); }
-
 .send-btn {
-  padding: 7px 14px;
-  background: var(--accent-cyan);
-  color: var(--bg-deep);
-  border: none;
-  font-family: var(--font-cond);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.send-btn:hover { background: #00e8ff; }
-
-/* ═══════════════════════════════════════
-   VISTA: DOCUMENTOS
-═══════════════════════════════════════ */
-#view-docs {
-  display: none;
-}
-#view-docs.active {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  overflow: hidden;
+  padding: 7px 14px; background: var(--accent-cyan); color: var(--bg-deep);
+  border: none; font-family: var(--font-cond); font-size: 12px;
+  font-weight: 700; letter-spacing: 2px; cursor: pointer;
 }
 
+/* DOCS */
+#view-docs { display: none; }
+#view-docs.active { display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
 .docs-sidebar {
   background: var(--bg-panel);
   border-right: 1px solid var(--border);
   overflow-y: auto;
 }
-
-.docs-category {
-  border-bottom: 1px solid var(--border);
-}
-
+.docs-category { border-bottom: 1px solid var(--border); }
 .docs-cat-header {
   padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  font-family: var(--font-cond);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  transition: color 0.15s;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--font-cond); font-size: 12px;
+  font-weight: 600; letter-spacing: 2px; color: var(--text-secondary);
 }
-.docs-cat-header:hover { color: var(--text-primary); }
-
 .docs-cat-count {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--bg-card); border: 1px solid var(--border);
   padding: 1px 6px;
 }
-
 .doc-item {
   padding: 8px 14px 8px 24px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.15s;
+  display: flex; align-items: center; gap: 8px;
 }
 .doc-item:hover { background: var(--bg-hover); }
 .doc-item.active { background: var(--bg-card); border-left: 2px solid var(--accent-cyan); }
-
-.doc-item .doc-icon {
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.doc-item .doc-name {
-  font-size: 12px;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
+.doc-item .doc-icon { font-size: 14px; flex-shrink: 0; }
+.doc-item .doc-name { font-size: 12px; line-height: 1.2; flex: 1; }
 .doc-item .doc-class {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 8px;
-  padding: 2px 5px;
-  border: 1px solid;
-  letter-spacing: 1px;
-  flex-shrink: 0;
+  font-family: var(--font-mono); font-size: 8px;
+  padding: 2px 5px; border: 1px solid;
+  letter-spacing: 1px; flex-shrink: 0;
 }
 .doc-class.secret { color: var(--accent-red); border-color: var(--accent-red); }
-.doc-class.conf   { color: var(--accent-amber); border-color: var(--accent-amber); }
-.doc-class.pub    { color: var(--text-secondary); border-color: var(--border); }
+.doc-class.conf { color: var(--accent-amber); border-color: var(--accent-amber); }
+.doc-class.pub { color: var(--text-secondary); border-color: var(--border); }
 
-.doc-viewer {
-  padding: 24px;
-  overflow-y: auto;
-  background: var(--bg-deep);
-}
-
+.doc-viewer { padding: 24px; overflow-y: auto; }
 .doc-viewer-header {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 20px; padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 }
-
 .doc-classification {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 3px;
-  padding: 3px 10px;
-  border: 1px solid var(--accent-red);
-  color: var(--accent-red);
-  margin-bottom: 10px;
+  display: inline-block; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 3px;
+  padding: 3px 10px; border: 1px solid; margin-bottom: 10px;
 }
-
 .doc-title {
-  font-family: var(--font-cond);
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-  margin-bottom: 8px;
+  font-family: var(--font-cond); font-size: 26px;
+  font-weight: 700; line-height: 1.2; margin-bottom: 8px;
 }
-
 .doc-meta-row {
-  display: flex;
-  gap: 20px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-secondary);
+  display: flex; gap: 20px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary); flex-wrap: wrap;
 }
-
 .doc-body {
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--text-secondary);
+  font-size: 13px; line-height: 1.7; color: var(--text-secondary);
 }
 .doc-body h3 {
-  font-family: var(--font-cond);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 1px;
-  margin: 16px 0 6px;
+  font-family: var(--font-cond); font-size: 15px;
+  font-weight: 700; color: var(--text-primary);
+  letter-spacing: 1px; margin: 16px 0 6px;
 }
 .doc-body p { margin-bottom: 10px; }
 .doc-body ul { margin-left: 20px; margin-bottom: 10px; }
@@ -992,276 +752,130 @@ body::before {
 .doc-body .alert-text { color: var(--accent-red); }
 .doc-body table { width: 100%; border-collapse: collapse; margin: 12px 0; }
 .doc-body th {
-  font-family: var(--font-cond);
-  font-size: 11px;
-  letter-spacing: 1px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 6px 10px;
-  text-align: left;
-  color: var(--text-secondary);
-  text-transform: uppercase;
+  font-family: var(--font-cond); font-size: 11px;
+  letter-spacing: 1px; background: var(--bg-card);
+  border: 1px solid var(--border); padding: 6px 10px; text-align: left;
 }
 .doc-body td {
-  border: 1px solid var(--border);
-  padding: 6px 10px;
-  color: var(--text-secondary);
-  font-size: 12px;
+  border: 1px solid var(--border); padding: 6px 10px; font-size: 12px;
 }
 .doc-body td:first-child { color: var(--text-primary); }
 
-/* ═══════════════════════════════════════
-   VISTA: FACILITADOR
-═══════════════════════════════════════ */
-#view-facilitator {
-  display: none;
-}
-#view-facilitator.active {
-  display: grid;
-  grid-template-columns: 1fr 1fr 320px;
-  overflow: hidden;
-}
-
+/* DIRECTOR PANEL */
+#view-director { display: none; }
+#view-director.active { display: grid; grid-template-columns: 1fr 1fr 320px; overflow: hidden; }
 .facil-panel {
   border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: flex; flex-direction: column; overflow: hidden;
 }
 .facil-panel:last-child { border-right: none; }
-
 .facil-panel-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
-  flex-shrink: 0;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  background: var(--bg-panel); flex-shrink: 0;
 }
-
 .facil-panel-title {
-  font-family: var(--font-cond);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--accent-amber);
-  text-transform: uppercase;
+  font-family: var(--font-cond); font-size: 14px;
+  font-weight: 700; letter-spacing: 2px; color: var(--accent-amber);
 }
-.facil-panel-subtitle {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
+.facil-panel-subtitle { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.facil-content { flex: 1; overflow-y: auto; padding: 12px; }
 
-.facil-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-}
-
-/* Inject event form */
-.inject-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+.inject-form { display: flex; flex-direction: column; gap: 10px; }
 .form-group label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-secondary);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
+  display: block; font-family: var(--font-mono);
+  font-size: 9px; color: var(--text-secondary);
+  letter-spacing: 2px; margin-bottom: 4px;
 }
-
 .form-select, .form-input, .form-textarea {
-  width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  padding: 8px 10px;
-  font-family: var(--font-body);
-  font-size: 12px;
-  outline: none;
-  transition: border-color 0.15s;
-  appearance: none;
+  width: 100%; background: var(--bg-card);
+  border: 1px solid var(--border); color: var(--text-primary);
+  padding: 8px 10px; font-family: var(--font-body);
+  font-size: 12px; outline: none;
 }
 .form-select:focus, .form-input:focus, .form-textarea:focus { border-color: var(--accent-amber); }
 .form-textarea { resize: none; height: 72px; }
 
-.form-select option { background: var(--bg-card); }
+.tag-targeting {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  padding: 8px; background: var(--bg-card); border: 1px solid var(--border);
+}
 
 .inject-btn {
-  padding: 10px;
-  background: rgba(240,165,0,0.15);
-  border: 1px solid var(--accent-amber);
-  color: var(--accent-amber);
-  font-family: var(--font-cond);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 0.15s;
+  padding: 10px; background: rgba(251,191,36,0.15);
+  border: 1px solid var(--accent-amber); color: var(--accent-amber);
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 700; letter-spacing: 3px; cursor: pointer;
 }
-.inject-btn:hover { background: rgba(240,165,0,0.25); box-shadow: var(--glow-amber); }
-
-/* Scenario control */
-.scenario-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.inject-btn:hover { background: rgba(251,191,36,0.25); }
 
 .control-btn {
-  padding: 10px 16px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  font-family: var(--font-cond);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: 10px 16px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-secondary);
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 600; letter-spacing: 2px;
+  cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px; width: 100%;
 }
 .control-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-bright); }
-.control-btn .btn-icon { font-size: 16px; }
 .control-btn.danger:hover { border-color: var(--accent-red); color: var(--accent-red); }
-.control-btn.success:hover { border-color: var(--accent-green); color: var(--accent-green); }
 
-/* Role status tracker */
-.role-status-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
+.role-status-grid { display: flex; flex-direction: column; gap: 6px; }
 .role-status-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--bg-card); border: 1px solid var(--border);
   padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
 }
-
-.role-online-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.role-online-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .online { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
 .offline { background: var(--text-dim); }
-.away { background: var(--accent-amber); }
-
 .role-status-name {
-  font-family: var(--font-cond);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  flex: 1;
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 600; flex: 1;
 }
-
 .role-status-meta {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-secondary);
-  text-align: right;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-secondary); text-align: right;
 }
 
-.role-status-meta .last-action {
-  font-size: 9px;
-  color: var(--text-dim);
-  display: block;
-}
-
-/* Inject log */
-.inject-log {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
+.inject-log { display: flex; flex-direction: column; gap: 6px; }
 .log-entry {
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  font-size: 11px;
-  display: flex;
-  gap: 8px;
+  padding: 6px 10px; border: 1px solid var(--border);
+  background: var(--bg-card); font-size: 11px;
+  display: flex; gap: 8px;
 }
-
 .log-entry .log-time {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-dim);
-  flex-shrink: 0;
-  padding-top: 1px;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-dim); flex-shrink: 0; padding-top: 1px;
 }
-
 .log-entry .log-msg { color: var(--text-secondary); }
-.log-entry .log-msg strong { color: var(--text-primary); font-weight: 500; }
+.log-entry .log-msg strong { color: var(--text-primary); }
 
-/* Notification toast */
+/* TOAST */
 .toast-container {
-  position: fixed;
-  top: 60px;
-  right: 16px;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  position: fixed; top: 60px; right: 16px; z-index: 999;
+  display: flex; flex-direction: column; gap: 6px;
   pointer-events: none;
 }
-
 .toast {
   background: var(--bg-panel);
   border: 1px solid var(--border-bright);
   border-left: 3px solid var(--accent-cyan);
-  padding: 10px 14px;
-  min-width: 280px;
-  max-width: 320px;
+  padding: 10px 14px; min-width: 280px; max-width: 320px;
   animation: toast-in 0.3s ease, toast-out 0.3s ease 4.7s forwards;
   pointer-events: auto;
 }
 .toast.red { border-left-color: var(--accent-red); }
 .toast.amber { border-left-color: var(--accent-amber); }
+@keyframes toast-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes toast-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+.toast-title { font-family: var(--font-cond); font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+.toast-body { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
-@keyframes toast-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes toast-out {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
-}
-
-.toast-title {
-  font-family: var(--font-cond);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 1px;
-}
-.toast-body {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
-
-/* Scrollbars global */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); }
-::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
 
-/* Leaflet slate theme overrides */
 .leaflet-tile-pane { filter: invert(1) hue-rotate(200deg) brightness(0.78) saturate(0.65); }
 .leaflet-container { background: #1c2d48; }
 .leaflet-control-zoom a {
@@ -1272,829 +886,844 @@ body::before {
 .leaflet-popup-content-wrapper {
   background: var(--bg-panel);
   border: 1px solid var(--border-bright);
-  color: var(--text-primary);
-  border-radius: 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  color: var(--text-primary); border-radius: 0;
 }
 .leaflet-popup-tip { background: var(--bg-panel); }
 </style>
 </head>
 <body>
 
-<!-- ══════════════ LOGIN SCREEN ══════════════ -->
-<div id="login-screen">
-  <div class="login-header">
+<!-- LANDING -->
+<div id="landing-screen">
+  <div class="landing-header">
     <div class="sys-label">PLATAFORMA DE SIMULACIÓN ACADÉMICA</div>
     <h1>CRISIS<span>SIM</span></h1>
     <div class="subtitle">GESTIÓN DE CRISIS · RIESGO POLÍTICO · DESASTRES</div>
+    <div class="version">v2.0 · ROLES CONFIGURABLES · ACCESS TAGS</div>
   </div>
 
-  <div class="login-box">
-    <div class="role-grid">
-      <button class="role-btn facilitator" onclick="selectRole(this,'facilitator','🎯 FACILITADOR','Control total del escenario')">
-        <span class="role-code">ROL-00</span>
-        <div class="role-name">FACILITADOR</div>
-        <div class="role-dept">Control de escenario · Inyección de eventos</div>
-      </button>
-      <button class="role-btn" onclick="selectRole(this,'presidente','👤 PRESIDENTE','Jefatura de Estado')">
-        <span class="role-code">ROL-01</span>
-        <div class="role-name">PRESIDENTE</div>
-        <div class="role-dept">Jefatura del Estado</div>
-      </button>
-      <button class="role-btn" onclick="selectRole(this,'pcm','👤 PRIMER MINISTRO','PCM')">
-        <span class="role-code">ROL-02</span>
-        <div class="role-name">PRIMER MINISTRO</div>
-        <div class="role-dept">Presidencia del Consejo de Ministros</div>
-      </button>
-      <button class="role-btn" onclick="selectRole(this,'indeci','👤 JEFE INDECI','Gestión de Riesgo')">
-        <span class="role-code">ROL-03</span>
-        <div class="role-name">JEFE INDECI</div>
-        <div class="role-dept">Gestión del Riesgo de Desastres</div>
-      </button>
-      <button class="role-btn" onclick="selectRole(this,'prensa','👤 MIN. COMUNICACIONES','Prensa')">
-        <span class="role-code">ROL-04</span>
-        <div class="role-name">COMUNICACIONES</div>
-        <div class="role-dept">Prensa y Vocería Oficial</div>
-      </button>
-    </div>
-    <button class="enter-btn" id="enter-btn" disabled onclick="enterSimulation()">INGRESAR AL SISTEMA</button>
-    <div class="scenario-label">ESCENARIO ACTIVO: <span>TERREMOTO 7.8 Mw — AREQUIPA · T+02:30</span></div>
+  <div class="entry-cards">
+    <button class="entry-card director" onclick="goToDirectorSetup()">
+      <div class="ec-icon">🎯</div>
+      <div class="ec-code">PERFIL DIRECTOR</div>
+      <div class="ec-title">CONFIGURAR EJERCICIO</div>
+      <div class="ec-desc">Selecciona escenario, define roles personalizados y asigna permisos por etiquetas. Obtienes código de sesión para participantes.</div>
+    </button>
+
+    <button class="entry-card participant" onclick="goToParticipantLogin()">
+      <div class="ec-icon">👤</div>
+      <div class="ec-code">PERFIL PARTICIPANTE</div>
+      <div class="ec-title">INGRESAR A SESIÓN</div>
+      <div class="ec-desc">Requiere código de sesión proporcionado por el Director. Selecciona tu rol dentro del ejercicio.</div>
+    </button>
   </div>
 </div>
 
-<!-- ══════════════ TOAST CONTAINER ══════════════ -->
+<!-- DIRECTOR SETUP -->
+<div id="director-setup">
+  <div class="setup-container">
+    <div class="setup-header">
+      <h2>CONFIGURAR <span>EJERCICIO</span></h2>
+      <button class="back-btn" onclick="backToLanding()">← VOLVER</button>
+    </div>
+
+    <div class="setup-step" data-step="PASO 1">
+      <h3>SELECCIONAR ESCENARIO</h3>
+      <div class="step-desc">Elige la crisis base sobre la cual se ejecutará el ejercicio.</div>
+      <div class="scenario-grid" id="scenario-grid"></div>
+    </div>
+
+    <div class="setup-step" data-step="PASO 2">
+      <h3>CONFIGURAR ROLES (1 a 10)</h3>
+      <div class="step-desc">Define los roles del ejercicio. Las etiquetas determinan qué información ve cada rol.</div>
+
+      <div class="preset-btns">
+        <button class="preset-btn" onclick="loadRolePreset('full')">▼ Plantilla completa (10)</button>
+        <button class="preset-btn" onclick="loadRolePreset('minimal')">▼ Plantilla mínima (4)</button>
+        <button class="preset-btn" onclick="loadRolePreset('clear')">↺ Limpiar</button>
+      </div>
+
+      <div class="role-builder" id="role-builder"></div>
+      <button class="add-role-btn" onclick="addRole()">+ AGREGAR ROL</button>
+    </div>
+
+    <div class="setup-step" data-step="PASO 3">
+      <h3>INICIAR SESIÓN</h3>
+      <div class="step-desc">Al iniciar, recibirás un código de sesión para compartir con los participantes.</div>
+
+      <button class="launch-btn" onclick="launchSession()">⬡ INICIAR EJERCICIO</button>
+
+      <div class="session-code-display" id="session-code-display" style="display:none">
+        <div class="sc-label">CÓDIGO DE SESIÓN — COMPARTIR CON PARTICIPANTES</div>
+        <div class="sc-code" id="session-code-value">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PARTICIPANT LOGIN -->
+<div id="participant-login">
+  <div class="plogin-box">
+    <h2>INGRESO PARTICIPANTE</h2>
+    <div class="plogin-desc">Ingresa el código de sesión proporcionado por el Director.</div>
+
+    <input class="session-input" id="session-code-input" type="text" placeholder="ABC-1234" maxlength="8">
+    <button class="btn-primary" id="join-session-btn" onclick="joinSession()">VALIDAR CÓDIGO</button>
+
+    <div class="plogin-roles" id="plogin-roles"></div>
+    <button class="btn-primary" id="enter-session-btn" onclick="enterAsParticipant()" style="display:none">INGRESAR AL EJERCICIO</button>
+
+    <button class="back-btn" onclick="backToLanding()" style="margin-top:14px; width:100%; padding:8px;">← VOLVER AL INICIO</button>
+  </div>
+</div>
+
 <div class="toast-container" id="toast-container"></div>
 
-<!-- ══════════════ MAIN APP ══════════════ -->
+<!-- MAIN APP -->
 <div id="app">
-
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-logo">CRISIS<span>SIM</span></div>
     <div class="topbar-sep"></div>
-    <div class="scenario-badge">ESC-2024-07 · TERREMOTO AREQUIPA</div>
+    <div class="scenario-badge" id="scenario-badge">—</div>
     <div class="role-badge" id="current-role-badge">—</div>
+    <div class="role-tags" id="current-role-tags"></div>
     <div class="topbar-right">
       <div class="sim-clock">
-        <span id="sim-time">T+02:31:04</span>
-        <span class="sim-date" id="sim-date">15 JUL 2024 · 06:45 hrs</span>
+        <span id="sim-time">T+00:00:00</span>
+        <span class="sim-date" id="sim-date">—</span>
       </div>
-      <div class="alert-level">ALERTA ROJA</div>
-      <button class="exit-btn" onclick="exitSimulation()">✕ SALIR</button>
+      <div class="alert-level" id="alert-level">ALERTA</div>
+      <button class="exit-btn" onclick="exitToLanding()">✕ SALIR</button>
     </div>
   </div>
 
-  <!-- NAV TABS -->
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('sitrep',this)">SITUACIÓN</button>
-    <button class="nav-tab" onclick="switchTab('comms',this)">COMUNICACIONES <span class="tab-badge" id="badge-comms">5</span></button>
-    <button class="nav-tab" onclick="switchTab('docs',this)">DOCUMENTOS</button>
-    <button class="nav-tab facilitator-only" id="tab-facilitator" onclick="switchTab('facilitator',this)" style="display:none">⬡ CONTROL FACILITADOR</button>
+    <button class="nav-tab active" data-tab="sitrep" onclick="switchTab('sitrep',this)">SITUACIÓN</button>
+    <button class="nav-tab" data-tab="comms" onclick="switchTab('comms',this)">COMUNICACIONES</button>
+    <button class="nav-tab" data-tab="docs" onclick="switchTab('docs',this)">DOCUMENTOS</button>
+    <button class="nav-tab director-only" data-tab="director" onclick="switchTab('director',this)" style="display:none">⬡ CONTROL DIRECTOR</button>
   </div>
 
-  <!-- MAIN CONTENT -->
   <div class="main-content">
-
-    <!-- VIEW: SITUACIÓN / MAPA -->
     <div id="view-sitrep" class="tab-view active">
-
-      <div class="sitrep-left">
-        <div class="panel-section">
-          <div class="panel-section-title">ESTADO DE EMERGENCIA</div>
-          <div class="stat-row">
-            <div class="stat-box"><span class="stat-val red" id="stat-muertos">312</span><div class="stat-label">FALLECIDOS</div></div>
-            <div class="stat-box"><span class="stat-val amber" id="stat-heridos">1,847</span><div class="stat-label">HERIDOS</div></div>
-          </div>
-          <div class="stat-row">
-            <div class="stat-box"><span class="stat-val amber" id="stat-desaparecidos">89</span><div class="stat-label">DESAPARECIDOS</div></div>
-            <div class="stat-box"><span class="stat-val green">12</span><div class="stat-label">RESCATADOS</div></div>
-          </div>
-        </div>
-
-        <div class="panel-section">
-          <div class="panel-section-title">INCIDENTES ACTIVOS</div>
-
-          <div class="incident-item critical" onclick="focusIncident(-16.409,-71.537,'Colapso Hospital Goyeneche')">
-            <div class="inc-type">■ CRÍTICO · ESTRUCTURA</div>
-            <div class="inc-title">Colapso Hospital Goyeneche</div>
-            <div class="inc-meta"><span>Arequipa Centro</span><span>T+00:45</span></div>
-          </div>
-
-          <div class="incident-item critical" onclick="focusIncident(-16.4,-71.5,'Deslizamiento Cono Norte')">
-            <div class="inc-type">■ CRÍTICO · GEOLÓGICO</div>
-            <div class="inc-title">Deslizamiento Cono Norte</div>
-            <div class="inc-meta"><span>Cerro Colorado</span><span>T+01:12</span></div>
-          </div>
-
-          <div class="incident-item warning" onclick="focusIncident(-16.42,-71.52,'Incendio Mercado San Camilo')">
-            <div class="inc-type">● ALERTA · INCENDIO</div>
-            <div class="inc-title">Incendio Mercado San Camilo</div>
-            <div class="inc-meta"><span>Arequipa Centro</span><span>T+01:58</span></div>
-          </div>
-
-          <div class="incident-item warning" onclick="focusIncident(-16.45,-71.55,'Ruptura Presa La Tomilla')">
-            <div class="inc-type">● ALERTA · INFRAESTRUCTURA</div>
-            <div class="inc-title">Ruptura Presa La Tomilla</div>
-            <div class="inc-meta"><span>Sachaca</span><span>T+02:10</span></div>
-          </div>
-
-          <div class="incident-item info" onclick="focusIncident(-16.35,-71.57,'Corte Suministro Eléctrico')">
-            <div class="inc-type">◆ INFO · SERVICIOS</div>
-            <div class="inc-title">Corte Suministro Eléctrico 80%</div>
-            <div class="inc-meta"><span>Región Arequipa</span><span>T+00:15</span></div>
-          </div>
-        </div>
-
-        <div class="panel-section">
-          <div class="panel-section-title">RECURSOS DESPLEGADOS</div>
-          <div class="stat-row">
-            <div class="stat-box"><span class="stat-val">8</span><div class="stat-label">BRIGADAS SAR</div></div>
-            <div class="stat-box"><span class="stat-val">3</span><div class="stat-label">HELICÓPTEROS</div></div>
-          </div>
-          <div class="stat-row">
-            <div class="stat-box"><span class="stat-val">2</span><div class="stat-label">HOSPITALES CAMPO</div></div>
-            <div class="stat-box"><span class="stat-val amber">14</span><div class="stat-label">ALBERGUES</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MAPA -->
+      <div class="sitrep-left" id="sitrep-left"></div>
       <div class="map-container">
         <div id="crisis-map"></div>
-        <div class="map-overlay-top">
-          <button class="map-layer-btn active" onclick="toggleLayer(this,'incidentes')">INCIDENTES</button>
-          <button class="map-layer-btn" onclick="toggleLayer(this,'recursos')">RECURSOS</button>
-          <button class="map-layer-btn" onclick="toggleLayer(this,'riesgo')">ZONAS RIESGO</button>
-        </div>
       </div>
-
-      <!-- TIMELINE -->
-      <div class="sitrep-right">
-        <div class="panel-section" style="border-bottom:none">
-          <div class="panel-section-title">LÍNEA DE TIEMPO</div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">06:45</div>
-          <div class="tl-dot red"></div>
-          <div class="tl-content">
-            <div class="tl-title">Sismo 7.8 Mw — Profundidad 12km</div>
-            <div class="tl-desc">Epicentro 45km SO de Arequipa. Sentido en Lima, Cusco y Puno.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">06:47</div>
-          <div class="tl-dot amber"></div>
-          <div class="tl-content">
-            <div class="tl-title">Activación automática SINAE</div>
-            <div class="tl-desc">Sistema Nacional de Alerta Temprana activa protocolo nivel 3.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">06:52</div>
-          <div class="tl-dot red"></div>
-          <div class="tl-content">
-            <div class="tl-title">Colapso Hospital Goyeneche reportado</div>
-            <div class="tl-desc">Ala sur del edificio. Estimado 40 pacientes atrapados.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">07:08</div>
-          <div class="tl-dot red"></div>
-          <div class="tl-content">
-            <div class="tl-title">Deslizamiento Cono Norte</div>
-            <div class="tl-desc">3 urbanizaciones afectadas. 200+ personas aisladas.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">07:33</div>
-          <div class="tl-dot amber"></div>
-          <div class="tl-content">
-            <div class="tl-title">COEN activa — Primera reunión</div>
-            <div class="tl-desc">Centro de Operaciones de Emergencia Nacional operativo.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">07:55</div>
-          <div class="tl-dot amber"></div>
-          <div class="tl-content">
-            <div class="tl-title">Ruptura parcial Presa La Tomilla</div>
-            <div class="tl-desc">Caudal aumentando. Evacuación de Sachaca y Tiabaya en curso.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">08:12</div>
-          <div class="tl-dot blue"></div>
-          <div class="tl-content">
-            <div class="tl-title">Arribo primera aeronave FAP</div>
-            <div class="tl-desc">Un C-130 con equipo médico y 2 equipos SAR aterrizó en AQP.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">09:15</div>
-          <div class="tl-dot green"></div>
-          <div class="tl-content">
-            <div class="tl-title">Primer rescate confirmado</div>
-            <div class="tl-desc">12 personas rescatadas vivas del Hospital Goyeneche.</div>
-          </div>
-        </div>
-
-        <div class="timeline-item" id="tl-inject-zone">
-          <!-- Dynamic items injected here -->
-        </div>
-
-        <div class="timeline-item">
-          <div class="tl-time">AHORA</div>
-          <div class="tl-dot red"></div>
-          <div class="tl-content">
-            <div class="tl-title" id="tl-current">T+02:31 — SITUACIÓN ACTIVA</div>
-            <div class="tl-desc">Operaciones de rescate en curso. Decisiones pendientes del equipo.</div>
-          </div>
-        </div>
-      </div>
+      <div class="sitrep-right" id="sitrep-right"></div>
     </div>
 
-    <!-- VIEW: COMUNICACIONES -->
-    <div id="view-comms" class="tab-view">
+    <div id="view-comms" class="tab-view"></div>
 
-      <!-- WHATSAPP SIMULADO -->
-      <div class="comm-panel">
-        <div class="comm-header">
-          <div class="comm-icon whatsapp">💬</div>
-          <div>
-            <div class="comm-title" style="color:var(--accent-green)">WHATSAPP</div>
-            <div class="comm-subtitle">Grupo: COMITÉ CRISIS NACIONAL</div>
-          </div>
-          <div class="comm-count" id="wa-count">18 msgs</div>
-        </div>
-
-        <div class="messages-feed" id="wa-feed">
-          <div class="wa-msg system">— GRUPO CREADO · 06:51 —</div>
-
-          <div class="wa-msg incoming">
-            <div class="msg-sender">Gral. TORRES / FFAA</div>
-            <div class="msg-text">SITREP inicial: sismo 7.8 confirmado IGP. Activando protocolo FUERZAS ARMADAS-01. Solicitando órdenes para despliegue.</div>
-            <div class="msg-time">06:53</div>
-          </div>
-
-          <div class="wa-msg incoming">
-            <div class="msg-sender">Dr. MEZA / MINSA</div>
-            <div class="msg-text">Hospital Goyeneche colapsado parcialmente. Activando COE-Salud. Necesito autorización para redirigir pacientes a hospitales de Mollendo y Moquegua.</div>
-            <div class="msg-time">06:58</div>
-          </div>
-
-          <div class="wa-msg outgoing">
-            <div class="msg-sender">Min. COMUNICACIONES</div>
-            <div class="msg-text">Autorizado. Coordinando traslados. Preparo comunicado oficial para 07:30.</div>
-            <div class="msg-time">07:02</div>
-          </div>
-
-          <div class="wa-msg incoming">
-            <div class="msg-sender">Ing. VALDEZ / INDECI</div>
-            <div class="msg-text">⚠️ URGENTE: Presa La Tomilla con fisura en muro sur. Solicitando EVACUAR Sachaca y Tiabaya de inmediato. Tiempo estimado falla total: 4-6 horas.</div>
-            <div class="msg-time">07:51</div>
-          </div>
-
-          <div class="wa-msg incoming">
-            <div class="msg-sender">Gral. TORRES / FFAA</div>
-            <div class="msg-text">3 helicópteros Mi-171 listos para operación. Awaiting coordinates para zona Cono Norte.</div>
-            <div class="msg-time">08:05</div>
-          </div>
-
-          <div class="wa-msg outgoing">
-            <div class="msg-sender">Min. COMUNICACIONES</div>
-            <div class="msg-text">Coordenadas enviadas por canal seguro. Prioridad 1: Hospital Goyeneche. Prioridad 2: Cono Norte.</div>
-            <div class="msg-time">08:11</div>
-          </div>
-
-          <div class="wa-msg incoming">
-            <div class="msg-sender">Dr. MEZA / MINSA</div>
-            <div class="msg-text">Actualización: 12 rescatados con vida en Goyeneche. 8 en estado crítico. Hospital de campo operativo en Parque Lambramani.</div>
-            <div class="msg-time">09:17</div>
-          </div>
-
-          <div class="wa-msg incoming">
-            <div class="msg-sender">Pref. AREQUIPA</div>
-            <div class="msg-text">🔴 Mobs en Plaza de Armas. Ciudadanos exigen info. Necesito presencia policial reforzada y vocero oficial EN SITIO ahora.</div>
-            <div class="msg-time">09:28</div>
-          </div>
-        </div>
-
-        <div class="comm-input-area">
-          <input class="comm-input" id="wa-input" type="text" placeholder="Escribir mensaje al grupo...">
-          <button class="send-btn" onclick="sendWAMessage()">ENVIAR</button>
-        </div>
-      </div>
-
-      <!-- TWITTER/X SIMULADO -->
-      <div class="comm-panel">
-        <div class="comm-header">
-          <div class="comm-icon twitter">𝕏</div>
-          <div>
-            <div class="comm-title" style="color:#1d9bf0">X / TWITTER</div>
-            <div class="comm-subtitle">Monitor: #TerremotoArequipa</div>
-          </div>
-          <div class="comm-count">247 nuevos/hr</div>
-        </div>
-
-        <div class="messages-feed" id="twitter-feed">
-
-          <div class="tweet urgent">
-            <div class="tweet-header">
-              <div class="tweet-avatar" style="background:#c0392b; color:white">RPP</div>
-              <div class="tweet-meta">
-                <div class="tweet-name">RPP Noticias</div>
-                <div class="tweet-handle">@RPPNoticias</div>
-              </div>
-            </div>
-            <div class="tweet-text">
-              🔴 BREAKING: Sismo 7.8 Mw sacude Arequipa. Hospital Goyeneche habría colapsado parcialmente. Sin cifras oficiales aún. Seguimos EN VIVO. <span class="hashtag">#TerremotoArequipa</span> <span class="hashtag">#Peru</span>
-            </div>
-            <div class="tweet-footer">
-              <span class="tweet-stat">🔁 8.4K</span>
-              <span class="tweet-stat">❤ 12.1K</span>
-              <span class="tweet-time">06:53</span>
-            </div>
-          </div>
-
-          <div class="tweet">
-            <div class="tweet-header">
-              <div class="tweet-avatar" style="background:#2c3e50; color:#aaa">@user</div>
-              <div class="tweet-meta">
-                <div class="tweet-name">María del Carmen V.</div>
-                <div class="tweet-handle">@mcarmenV_aqp</div>
-              </div>
-            </div>
-            <div class="tweet-text">
-              Mi familia en Cerro Colorado no contesta el teléfono desde el sismo. Alguien sabe cómo está la zona norte??? 😭 <span class="hashtag">#TerremotoArequipa</span>
-            </div>
-            <div class="tweet-footer">
-              <span class="tweet-stat">🔁 423</span>
-              <span class="tweet-stat">❤ 891</span>
-              <span class="tweet-time">07:12</span>
-            </div>
-          </div>
-
-          <div class="tweet urgent">
-            <div class="tweet-header">
-              <div class="tweet-avatar" style="background:#1a5276; color:#aaa">CNN</div>
-              <div class="tweet-meta">
-                <div class="tweet-name">CNN en Español</div>
-                <div class="tweet-handle">@CNNEE</div>
-              </div>
-            </div>
-            <div class="tweet-text">
-              DEVELOPING: 7.8-magnitude earthquake hits Peru's Arequipa. Early reports suggest significant casualties and infrastructure damage. Government yet to issue official statement. <span class="hashtag">#Earthquake</span> <span class="hashtag">#Peru</span>
-            </div>
-            <div class="tweet-footer">
-              <span class="tweet-stat">🔁 15.2K</span>
-              <span class="tweet-stat">❤ 9.8K</span>
-              <span class="tweet-time">07:20</span>
-            </div>
-          </div>
-
-          <div class="tweet">
-            <div class="tweet-header">
-              <div class="tweet-avatar" style="background:#117a65; color:white">INDECI</div>
-              <div class="tweet-meta">
-                <div class="tweet-name">INDECI Perú</div>
-                <div class="tweet-handle">@INDECI_PERU</div>
-              </div>
-            </div>
-            <div class="tweet-text">
-              📢 COMUNICADO: El COEN se encuentra ACTIVADO y monitoreando la situación en Arequipa. Se despliegan brigadas SAR y equipos médicos. Mantengan la calma y sigan canales oficiales. <span class="mention">@PCM_Peru</span> <span class="hashtag">#GestionRiesgo</span>
-            </div>
-            <div class="tweet-footer">
-              <span class="tweet-stat">🔁 4.1K</span>
-              <span class="tweet-stat">❤ 6.7K</span>
-              <span class="tweet-time">07:38</span>
-            </div>
-          </div>
-
-          <div class="tweet">
-            <div class="tweet-header">
-              <div class="tweet-avatar" style="background:#7d3c98; color:white">🎙</div>
-              <div class="tweet-meta">
-                <div class="tweet-name">Jorge Valdiviezo</div>
-                <div class="tweet-handle">@jvaldiviezo</div>
-              </div>
-            </div>
-            <div class="tweet-text">
-              El Gobierno NO aparece. Han pasado más de 2 horas y el presidente no habla. La gente necesita información AHORA. Esto es una vergüenza. <span class="hashtag">#TerremotoArequipa</span> <span class="hashtag">#DondeEstaElPresidente</span>
-            </div>
-            <div class="tweet-footer">
-              <span class="tweet-stat">🔁 6.3K</span>
-              <span class="tweet-stat">❤ 11.4K</span>
-              <span class="tweet-time">09:02</span>
-            </div>
-          </div>
-
-          <div class="tweet" id="twitter-inject-zone">
-          </div>
-
-        </div>
-
-        <div class="comm-input-area">
-          <input class="comm-input" id="tweet-input" type="text" placeholder="Tweet oficial (@GobiernoPeru)...">
-          <button class="send-btn" style="background:var(--accent-blue); color:white" onclick="sendTweet()">TWITTEAR</button>
-        </div>
-      </div>
-
-      <!-- SMS SIMULADO -->
-      <div class="comm-panel">
-        <div class="comm-header">
-          <div class="comm-icon sms">📲</div>
-          <div>
-            <div class="comm-title" style="color:var(--accent-purple)">SMS / ALERTAS</div>
-            <div class="comm-subtitle">SIRENAH · Mensajes de campo</div>
-          </div>
-          <div class="comm-count">7 sin leer</div>
-        </div>
-
-        <div class="messages-feed" id="sms-feed">
-
-          <div class="sms-msg">
-            <div class="sms-from">SIRENAH · SISTEMA NACIONAL</div>
-            <div class="sms-text">ALERTA SÍSMICA: Terremoto M7.8 registrado. Aléjese de estructuras dañadas. Siga instrucciones de autoridades. #NoEsCharada</div>
-            <div class="sms-meta"><span>DIFUSIÓN MASIVA · 47M destinatarios</span><span>06:48</span></div>
-          </div>
-
-          <div class="sms-msg">
-            <div class="sms-from">+51 054 234 100 · Gob. Regional AQP</div>
-            <div class="sms-text">Gobernador Fuentes solicita declaratoria de emergencia inmediata. Capacidad regional superada. Contactar urgente al PCM.</div>
-            <div class="sms-meta"><span>Gobernación Arequipa</span><span>07:15</span></div>
-          </div>
-
-          <div class="sms-msg">
-            <div class="sms-from">+51 980 112 233 · BOMBEROS AQP</div>
-            <div class="sms-text">URGENTE: Mercado San Camilo incendiándose. 3 unidades en sitio. INSUFICIENTE. Necesitamos 5 unidades más y despejar Av. Ejército para ingreso.</div>
-            <div class="sms-meta"><span>Cuerpo Gral. Bomberos Voluntarios</span><span>07:53</span></div>
-          </div>
-
-          <div class="sms-msg">
-            <div class="sms-from">+51 994 877 001 · FAP OPERACIONES</div>
-            <div class="sms-text">C-130 aterrizó AQP 08:10. Descargando 2 equipos SAR, 1 equipo médico quirúrgico, 3 toneladas insumos. Esperando coordenadas destino.</div>
-            <div class="sms-meta"><span>Fuerza Aérea del Perú · Op. AUXILIO I</span><span>08:12</span></div>
-          </div>
-
-          <div class="sms-msg">
-            <div class="sms-from">+51 054 288 400 · SENAMHI</div>
-            <div class="sms-text">ALERTA HIDRO: Niveles Río Chili en ascenso por ruptura presa. Caudal +340% sobre normal. EVACUAR INMEDIATO ribereños sectores 3,4,7.</div>
-            <div class="sms-meta"><span>Servicio Hidrometeorológico</span><span>08:40</span></div>
-          </div>
-
-          <div class="sms-msg">
-            <div class="sms-from">DEFENSORÍA DEL PUEBLO</div>
-            <div class="sms-text">Reportes de desorden y saqueos en Mercado Mayorista y Mall Aventura. Solicitamos presencia policial reforzada y vocero oficial en zona.</div>
-            <div class="sms-meta"><span>Oficina Arequipa</span><span>09:05</span></div>
-          </div>
-
-          <div class="sms-msg">
-            <div class="sms-from">+51 054 201 200 · PNP AREQUIPA</div>
-            <div class="sms-text">Estado: 80% efectivos desplegados. Tráfico caótico en av. principales. Solicitando autorización para cerrar vías y habilitar corredores humanitarios.</div>
-            <div class="sms-meta"><span>Policía Nacional · XII MACPOL</span><span>09:31</span></div>
-          </div>
-
-          <div id="sms-inject-zone"></div>
-        </div>
-
-        <div class="comm-input-area">
-          <input class="comm-input" id="sms-input" type="text" placeholder="Responder a número de campo...">
-          <button class="send-btn" style="background:var(--accent-purple); color:white" onclick="sendSMS()">ENVIAR</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: DOCUMENTOS -->
     <div id="view-docs" class="tab-view">
-      <div class="docs-sidebar">
-        <div class="docs-category">
-          <div class="docs-cat-header">CLASIFICADOS <span class="docs-cat-count">3</span></div>
-          <div class="doc-item active" onclick="showDoc('sitrep-inicial')">
-            <div class="doc-icon">🔴</div>
-            <div>
-              <div class="doc-name">SITREP Inicial — T+00:30</div>
-            </div>
-            <div class="doc-class secret">SECRET</div>
-          </div>
-          <div class="doc-item" onclick="showDoc('eval-danos')">
-            <div class="doc-icon">🔴</div>
-            <div>
-              <div class="doc-name">Evaluación Daños Preliminar</div>
-            </div>
-            <div class="doc-class secret">SECRET</div>
-          </div>
-          <div class="doc-item" onclick="showDoc('presa')">
-            <div class="doc-icon">⚠️</div>
-            <div>
-              <div class="doc-name">Informe Técnico Presa La Tomilla</div>
-            </div>
-            <div class="doc-class secret">SECRET</div>
-          </div>
-        </div>
-        <div class="docs-category">
-          <div class="docs-cat-header">CONFIDENCIALES <span class="docs-cat-count">2</span></div>
-          <div class="doc-item" onclick="showDoc('plan-evacuacion')">
-            <div class="doc-icon">📋</div>
-            <div>
-              <div class="doc-name">Plan de Evacuación — Arequipa</div>
-            </div>
-            <div class="doc-class conf">CONF</div>
-          </div>
-          <div class="doc-item" onclick="showDoc('recursos')">
-            <div class="doc-icon">📋</div>
-            <div>
-              <div class="doc-name">Inventario Recursos Humanitarios</div>
-            </div>
-            <div class="doc-class conf">CONF</div>
-          </div>
-        </div>
-        <div class="docs-category">
-          <div class="docs-cat-header">PÚBLICOS <span class="docs-cat-count">2</span></div>
-          <div class="doc-item" onclick="showDoc('comunicado1')">
-            <div class="doc-icon">📢</div>
-            <div>
-              <div class="doc-name">Comunicado Oficial N° 1</div>
-            </div>
-            <div class="doc-class pub">PUB</div>
-          </div>
-          <div class="doc-item" onclick="showDoc('protocolo')">
-            <div class="doc-icon">📖</div>
-            <div>
-              <div class="doc-name">Protocolo SINAGERD Nivel 3</div>
-            </div>
-            <div class="doc-class pub">PUB</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="doc-viewer" id="doc-viewer-content">
-        <!-- Loaded dynamically -->
-      </div>
+      <div class="docs-sidebar" id="docs-sidebar"></div>
+      <div class="doc-viewer" id="doc-viewer-content"></div>
     </div>
 
-    <!-- VIEW: FACILITADOR -->
-    <div id="view-facilitator" class="tab-view">
-
-      <!-- INYECTAR EVENTO -->
-      <div class="facil-panel">
-        <div class="facil-panel-header">
-          <div class="facil-panel-title">INYECTAR EVENTO</div>
-          <div class="facil-panel-subtitle">Introduce nuevos eventos al escenario en tiempo real</div>
-        </div>
-        <div class="facil-content">
-          <div class="inject-form">
-            <div class="form-group">
-              <label>Canal de inyección</label>
-              <select class="form-select" id="inject-channel">
-                <option value="timeline">📌 Línea de Tiempo</option>
-                <option value="whatsapp">💬 WhatsApp Grupal</option>
-                <option value="twitter">𝕏 Twitter Feed</option>
-                <option value="sms">📲 SMS de Campo</option>
-                <option value="stats">📊 Estadísticas</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Nivel de urgencia</label>
-              <select class="form-select" id="inject-level">
-                <option value="red">🔴 Crítico</option>
-                <option value="amber">🟡 Alerta</option>
-                <option value="blue">🔵 Informativo</option>
-                <option value="green">🟢 Positivo</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Título del evento</label>
-              <input class="form-input" id="inject-title" type="text" placeholder="Ej: Réplica 5.2 Mw detectada">
-            </div>
-            <div class="form-group">
-              <label>Descripción / Mensaje</label>
-              <textarea class="form-textarea" id="inject-body" placeholder="Detalle del evento que verán los participantes..."></textarea>
-            </div>
-            <div class="form-group">
-              <label>Remitente (para WA/SMS)</label>
-              <input class="form-input" id="inject-sender" type="text" placeholder="Ej: Gral. TORRES / FFAA">
-            </div>
-            <button class="inject-btn" onclick="injectEvent()">⬡ INYECTAR EVENTO</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- CONTROL DE ESCENARIO -->
-      <div class="facil-panel">
-        <div class="facil-panel-header">
-          <div class="facil-panel-title">CONTROL ESCENARIO</div>
-          <div class="facil-panel-subtitle">Gestionar estado de la simulación</div>
-        </div>
-        <div class="facil-content">
-          <div class="scenario-controls" style="margin-bottom:20px">
-            <button class="control-btn" onclick="triggerEvent('replica')"><span class="btn-icon">⚡</span> ACTIVAR: Réplica 5.8 Mw</button>
-            <button class="control-btn" onclick="triggerEvent('segundo_deslizamiento')"><span class="btn-icon">⛰</span> ACTIVAR: Segundo Deslizamiento</button>
-            <button class="control-btn" onclick="triggerEvent('colapso_presa')"><span class="btn-icon">💧</span> ACTIVAR: Falla Total Presa</button>
-            <button class="control-btn" onclick="triggerEvent('mediainternacional')"><span class="btn-icon">📡</span> ACTIVAR: Presión Media Internacional</button>
-            <button class="control-btn" onclick="triggerEvent('ayuda_exterior')"><span class="btn-icon">✈</span> ACTIVAR: Arribo Ayuda Exterior</button>
-            <button class="control-btn success" onclick="triggerEvent('fin_rescate')"><span class="btn-icon">✅</span> SEÑAL: Fin Fase Rescate</button>
-            <button class="control-btn danger" onclick="triggerEvent('reset')"><span class="btn-icon">↺</span> REINICIAR ESCENARIO</button>
-          </div>
-
-          <div class="panel-section-title" style="margin-bottom:10px">REGISTRO DE INYECCIONES</div>
-          <div class="inject-log" id="inject-log">
-            <div class="log-entry"><div class="log-time">06:45</div><div class="log-msg"><strong>SISTEMA</strong> — Escenario iniciado: Terremoto 7.8 Mw Arequipa</div></div>
-            <div class="log-entry"><div class="log-time">07:51</div><div class="log-msg"><strong>FAC</strong> — Evento inyectado: Fisura Presa La Tomilla vía WhatsApp</div></div>
-            <div class="log-entry"><div class="log-time">09:02</div><div class="log-msg"><strong>FAC</strong> — Presión social inyectada: tweet #DondeEstaElPresidente</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ESTADO DE ROLES -->
-      <div class="facil-panel">
-        <div class="facil-panel-header">
-          <div class="facil-panel-title">ESTADO DE ROLES</div>
-          <div class="facil-panel-subtitle">Conectividad y actividad de participantes</div>
-        </div>
-        <div class="facil-content">
-          <div class="role-status-grid">
-            <div class="role-status-item">
-              <div class="role-online-dot online"></div>
-              <div>
-                <div class="role-status-name">PRESIDENTE</div>
-                <div style="font-size:10px;color:var(--text-secondary)">ROL-01</div>
-              </div>
-              <div class="role-status-meta">
-                <span style="color:var(--accent-green)">● EN LÍNEA</span>
-                <span class="last-action">Última acción: 08:11</span>
-              </div>
-            </div>
-            <div class="role-status-item">
-              <div class="role-online-dot online"></div>
-              <div>
-                <div class="role-status-name">PRIMER MINISTRO</div>
-                <div style="font-size:10px;color:var(--text-secondary)">ROL-02</div>
-              </div>
-              <div class="role-status-meta">
-                <span style="color:var(--accent-green)">● EN LÍNEA</span>
-                <span class="last-action">Última acción: 09:28</span>
-              </div>
-            </div>
-            <div class="role-status-item">
-              <div class="role-online-dot away"></div>
-              <div>
-                <div class="role-status-name">JEFE INDECI</div>
-                <div style="font-size:10px;color:var(--text-secondary)">ROL-03</div>
-              </div>
-              <div class="role-status-meta">
-                <span style="color:var(--accent-amber)">● INACTIVO</span>
-                <span class="last-action">Última acción: 07:55</span>
-              </div>
-            </div>
-            <div class="role-status-item">
-              <div class="role-online-dot online"></div>
-              <div>
-                <div class="role-status-name">COMUNICACIONES</div>
-                <div style="font-size:10px;color:var(--text-secondary)">ROL-04</div>
-              </div>
-              <div class="role-status-meta">
-                <span style="color:var(--accent-green)">● EN LÍNEA</span>
-                <span class="last-action">Última acción: 09:31</span>
-              </div>
-            </div>
-            <div class="role-status-item">
-              <div class="role-online-dot offline"></div>
-              <div>
-                <div class="role-status-name">ROL-05 (VACANTE)</div>
-                <div style="font-size:10px;color:var(--text-secondary)">Sin asignar</div>
-              </div>
-              <div class="role-status-meta">
-                <span style="color:var(--text-dim)">● DESCONECTADO</span>
-                <span class="last-action">—</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:20px">
-            <div class="panel-section-title" style="margin-bottom:10px">MÉTRICAS DE SIMULACIÓN</div>
-            <div class="stat-row">
-              <div class="stat-box"><span class="stat-val">24</span><div class="stat-label">MSGS TOTALES</div></div>
-              <div class="stat-box"><span class="stat-val amber">3</span><div class="stat-label">DECISIONES</div></div>
-            </div>
-            <div class="stat-row">
-              <div class="stat-box"><span class="stat-val green">4</span><div class="stat-label">ROLES ACTIVOS</div></div>
-              <div class="stat-box"><span class="stat-val" id="facil-elapsed">02:31</span><div class="stat-label">TIEMPO EJER.</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /main-content -->
-</div><!-- /app -->
+    <div id="view-director" class="tab-view"></div>
+  </div>
+</div>
 
 <script>
 // ════════════════════════════════════════
-// STATE
+// ACCESS TAGS — 11 universales
 // ════════════════════════════════════════
-let currentRole = null;
-let simSeconds = 9064; // T+02:31:04
+const ACCESS_TAGS = {
+  'POLITICA':     { label: '🎯 Decisión Política' },
+  'MILITAR':      { label: '🛡 Militar / FFAA' },
+  'INTERIOR':     { label: '🚓 Seguridad Interna' },
+  'SALUD':        { label: '🏥 Salud Pública' },
+  'RIESGO':       { label: '🌋 Gestión de Riesgo' },
+  'INTELIGENCIA': { label: '📡 Inteligencia' },
+  'COMUNICACION': { label: '📢 Comunicación Pública' },
+  'REGIONAL':     { label: '🏛 Nivel Regional' },
+  'ECONOMICO':    { label: '💰 Económico-Financiero' },
+  'DIPLOMATICO':  { label: '🌐 Diplomático / RREE' },
+  'JUDICIAL':     { label: '⚖ Judicial / Fiscal' }
+};
+
+// ════════════════════════════════════════
+// SCENARIOS
+// ════════════════════════════════════════
+const SCENARIOS = {
+  'vacancia': {
+    id: 'vacancia',
+    icon: '🏛',
+    title: 'Crisis Política — Vacancia Presidencial',
+    desc: 'Tensión Ejecutivo vs Congreso. Moción de vacancia con 87 firmas. Fractura del gabinete y presión internacional.',
+    primaryTags: ['POLITICA', 'COMUNICACION', 'INTELIGENCIA', 'JUDICIAL'],
+    alertLevel: 'ALERTA POLÍTICA',
+    startDate: '12 MAR 2026 · 14:00 hrs',
+    startSeconds: 7200,
+    mapCenter: [-12.046, -77.043],
+    mapZoom: 13,
+    stats: [
+      { label: 'FIRMAS VACANCIA', val: '87', color: 'red' },
+      { label: 'VOTOS NECESARIOS', val: '87', color: 'amber' },
+      { label: 'MINISTROS RENUNCIADOS', val: '4', color: 'red' },
+      { label: 'PROTESTAS ACTIVAS', val: '12', color: 'amber' }
+    ],
+    incidents: [
+      { lat:-12.046, lng:-77.043, type:'critical', tagType:'POLITICA',
+        title:'Plaza Bolívar — Congreso convocado', meta:'Congreso · T+00:00',
+        label:'🔴 Congreso en sesión extraordinaria' },
+      { lat:-12.054, lng:-77.030, type:'critical', tagType:'POLITICA',
+        title:'Palacio — Gabinete reunido', meta:'Palacio · T+00:30',
+        label:'🔴 Gabinete en sesión permanente' },
+      { lat:-12.062, lng:-77.036, type:'warning', tagType:'INTERIOR',
+        title:'Marcha Av. Abancay — 8K personas', meta:'Centro Lima · T+01:15',
+        label:'🟡 Movilización ciudadana' },
+      { lat:-12.116, lng:-77.029, type:'warning', tagType:'INTERIOR',
+        title:'Concentración Campo de Marte', meta:'Jesús María · T+01:40',
+        label:'🟡 Marcha pro-vacancia' },
+      { lat:-12.046, lng:-77.067, type:'info', tagType:'COMUNICACION',
+        title:'Acreditación prensa internacional', meta:'San Isidro · T+00:45',
+        label:'ℹ Prensa internacional' }
+    ],
+    timeline: [
+      { time:'12:00', dot:'amber', tagType:'POLITICA', title:'Presentación moción de vacancia',
+        desc:'Bancada opositora presenta moción con 32 firmas iniciales.' },
+      { time:'12:45', dot:'red', tagType:'POLITICA', title:'Moción alcanza 87 firmas',
+        desc:'Se alcanzan las firmas necesarias. Debate programado para hoy 18:00.' },
+      { time:'13:10', dot:'red', tagType:'POLITICA', title:'Renuncia Ministro de Justicia',
+        desc:'Cita "irreconciliables diferencias".' },
+      { time:'13:35', dot:'red', tagType:'POLITICA', title:'Renuncia Ministra de la Mujer',
+        desc:'Segunda renuncia en una hora. Pérdida de respaldo político.' },
+      { time:'13:50', dot:'amber', tagType:'INTERIOR', title:'Convocatoria a marchas',
+        desc:'Colectivos ciudadanos convocan plazas de Lima, Arequipa, Cusco y Trujillo.' },
+      { time:'14:00', dot:'red', tagType:'POLITICA', title:'Presidente solicita pronunciamiento FFAA',
+        desc:'Solicita "respaldo institucional" del Comando Conjunto en reunión privada.' }
+    ],
+    twitter: [
+      { name:'El Comercio', handle:'@elcomercio_peru', avatar:'EC', avatarBg:'#c0392b',
+        text:'🔴 ÚLTIMA HORA: Moción de vacancia alcanza 87 firmas en el Congreso. Debate programado 18:00. <span class="hashtag">#VacanciaYa</span>',
+        time:'12:48', urgent:true, requiresTags:[] },
+      { name:'Caretas', handle:'@caretas', avatar:'CT', avatarBg:'#1a5276',
+        text:'Renuncia el ministro de Justicia. "Irreconciliables diferencias" con el presidente.',
+        time:'13:14', requiresTags:[] },
+      { name:'Patricia del Río', handle:'@patydelrio', avatar:'PR', avatarBg:'#7d3c98',
+        text:'Esto se desmorona. El presidente está aislado. Su propio gabinete lo abandona.',
+        time:'13:42', requiresTags:[] },
+      { name:'Augusto Álvarez R.', handle:'@aar_peru', avatar:'AR', avatarBg:'#117a65',
+        text:'CUIDADO. El Perú no necesita otra vacancia. Necesita estabilidad. <span class="hashtag">#Peru</span>',
+        time:'13:55', requiresTags:[] },
+      { name:'BBC Mundo', handle:'@bbcmundo', avatar:'BBC', avatarBg:'#1a3a5c',
+        text:'Peru president faces impeachment as cabinet ministers resign. <span class="hashtag">#Peru</span>',
+        time:'14:01', urgent:true, requiresTags:[] },
+      { name:'Embajador EE.UU.', handle:'@USAmbPeru', avatar:'US', avatarBg:'#1a3a5c',
+        text:'EE.UU. expresa su confianza en las instituciones democráticas del Perú.',
+        time:'14:12', requiresTags:['DIPLOMATICO'] }
+    ],
+    whatsapp: [
+      { type:'system', sender:'GRUPO CREADO · COMITÉ DE CRISIS · 12:30', requiresTags:['POLITICA'] },
+      { sender:'Jefe de Gabinete', text:'Reunión urgente. 87 firmas confirmadas. Debate 18:00. ¿Estrategia?', time:'12:50', requiresTags:['POLITICA'] },
+      { sender:'Asesor Legal Presidencia', text:'La vacancia por "incapacidad moral" tiene precedentes débiles. Podemos exponer la interpretación constitucional cuestionable.', time:'12:58', requiresTags:['POLITICA','JUDICIAL'] },
+      { sender:'Asesor de Comunicaciones', text:'Mensaje presidencial: necesario antes de 16:00. Tono firme pero conciliador. Convocar diálogo nacional.', time:'13:05', requiresTags:['COMUNICACION'] },
+      { sender:'Jefe Inteligencia DINI', text:'🔴 RESERVADO: Movilizaciones en 12 ciudades. Infiltración detectada de grupos radicales en marcha Lima. Riesgo violencia: ALTO.', time:'13:20', requiresTags:['INTELIGENCIA'] },
+      { sender:'Ministro Defensa', text:'Recibí solicitud de "respaldo institucional". Aclaro: las FFAA respetan el orden constitucional, no toman parte en disputa política.', time:'14:05', requiresTags:['MILITAR','POLITICA'] },
+      { sender:'Canciller', text:'Embajadas de EE.UU., UE, Brasil y Chile piden información. Cuba y Venezuela ya emitieron declaraciones. Necesitamos línea oficial YA.', time:'14:18', requiresTags:['DIPLOMATICO'] }
+    ],
+    sms: [
+      { from:'JEFE PNP · LIMA', text:'Plaza Bolívar: 4,000 personas, en aumento. Solicito autorización desviar tránsito Av. Abancay.', time:'13:40', requiresTags:['INTERIOR'] },
+      { from:'GOB. REGIONAL AREQUIPA', text:'Movilización Plaza Armas Arequipa: 2,500 personas. Pacífica. Solicito instrucciones.', time:'13:48', requiresTags:['REGIONAL'] },
+      { from:'FISCAL DE LA NACIÓN', text:'Si hay vacancia y juramentación, la línea presidencial requiere certificación inmediata. Estamos en preparación.', time:'14:02', requiresTags:['JUDICIAL','POLITICA'] },
+      { from:'BCRP — PRESIDENCIA', text:'BVL -3.8%. Dólar 3.92. Riesgo país +47pb. Mercado descuenta vacancia.', time:'14:10', requiresTags:['ECONOMICO'] },
+      { from:'COMANDO CONJUNTO FFAA', text:'FFAA en funciones constitucionales. Sin movimientos atípicos. Garantizamos orden público según ley.', time:'14:15', requiresTags:['MILITAR'] },
+      { from:'EMBAJADA UE EN PERÚ', text:'La UE sigue con atención el proceso democrático y confía en el respeto al Estado de Derecho.', time:'14:22', requiresTags:['DIPLOMATICO'] }
+    ],
+    documents: [
+      { id:'analisis-politico', class:'SECRETO', icon:'🔴',
+        title:'Análisis Político — Escenarios de Vacancia',
+        meta:['ORIGEN: DINI / Asesoría Presidencial','FECHA: 12 MAR 2026 · 13:00'],
+        requiresTags:['POLITICA','INTELIGENCIA'],
+        body:`<h3>1. ESCENARIOS PROBABLES</h3>
+          <table><tr><th>Escenario</th><th>Probabilidad</th><th>Votos</th></tr>
+          <tr><td class="alert-text">Vacancia aprobada</td><td>62%</td><td>89-94</td></tr>
+          <tr><td>Vacancia rechazada</td><td>23%</td><td>78-85</td></tr>
+          <tr><td class="highlight">Negociación / retiro</td><td>15%</td><td>—</td></tr></table>
+          <h3>2. BANCADAS CLAVE</h3><ul>
+          <li><span class="highlight">Bancada A (29 esc.)</span>: voto duro a favor</li>
+          <li><span class="highlight">Bancada B (24 esc.)</span>: voto duro en contra</li>
+          <li><span class="alert-text">Bancada C (18 esc.) — DECISIVA</span>: dividida</li>
+          <li>Independientes (12): inclinados al voto político</li></ul>
+          <h3>3. RECOMENDACIÓN</h3>
+          <p>Iniciar contacto inmediato con bancada C. Tiempo crítico: 3 horas.</p>` },
+      { id:'movilizaciones', class:'SECRETO', icon:'🔴',
+        title:'Reporte Movilizaciones Ciudadanas',
+        meta:['ORIGEN: DINI / Operaciones'],
+        requiresTags:['INTELIGENCIA','INTERIOR'],
+        body:`<h3>SITUACIÓN ACTUAL</h3>
+          <table><tr><th>Ciudad</th><th>Punto</th><th>Aforo</th><th>Riesgo</th></tr>
+          <tr><td>Lima</td><td>Plaza Bolívar</td><td>8,000</td><td class="alert-text">ALTO</td></tr>
+          <tr><td>Lima</td><td>Campo Marte</td><td>4,500</td><td>MEDIO</td></tr>
+          <tr><td>Arequipa</td><td>Plaza Armas</td><td>2,500</td><td>MEDIO</td></tr>
+          <tr><td>Cusco</td><td>Plaza Mayor</td><td>1,800</td><td>BAJO</td></tr></table>
+          <h3>FACTOR DE RIESGO</h3>
+          <p><span class="alert-text">Presencia de grupos radicales</span> en marcha Plaza Bolívar. Estimado: 80-120 individuos.</p>` },
+      { id:'sucesion', class:'CONFIDENCIAL', icon:'⚠️',
+        title:'Protocolo de Sucesión Presidencial',
+        meta:['ORIGEN: Asesoría Jurídica PCM'],
+        requiresTags:['POLITICA','JUDICIAL'],
+        body:`<h3>MARCO CONSTITUCIONAL</h3>
+          <p>Art. 115 establece la línea sucesoria. Juramentación máximo <span class="highlight">24 horas</span> tras la vacancia.</p>
+          <h3>LÍNEA SUCESORIA</h3><ul>
+          <li>1° Vicepresidente</li><li>2° Vicepresidente</li>
+          <li>Presidente del Congreso</li></ul>` },
+      { id:'impacto-economico', class:'CONFIDENCIAL', icon:'💰',
+        title:'Impacto Económico Inmediato',
+        meta:['ORIGEN: MEF / BCRP'],
+        requiresTags:['ECONOMICO','POLITICA'],
+        body:`<h3>INDICADORES TIEMPO REAL</h3>
+          <table><tr><th>Indicador</th><th>Valor</th><th>Variación</th></tr>
+          <tr><td>BVL</td><td>22,840</td><td class="alert-text">-3.82%</td></tr>
+          <tr><td>USD/PEN</td><td>3.92</td><td class="alert-text">+0.08</td></tr>
+          <tr><td>Riesgo país</td><td>184pb</td><td class="alert-text">+47pb</td></tr></table>
+          <h3>PROYECCIÓN</h3>
+          <p>Vacancia con transición ordenada: -1.5% PBI trimestral. Crisis prolongada: -3% a -5% PBI anual.</p>` },
+      { id:'comunicado-vacancia', class:'PÚBLICO', icon:'📢',
+        title:'Borrador Comunicado Presidencial',
+        meta:['ORIGEN: Comunicaciones'],
+        requiresTags:[],
+        body:`<p>Ciudadanos del Perú:</p>
+          <p>Respeto plenamente las facultades constitucionales del Congreso y me someto al proceso legal.</p>
+          <p>Hago un llamado a la <span class="highlight">unidad nacional, al diálogo y al respeto del Estado de Derecho</span>.</p>
+          <p>Convoco a las fuerzas políticas y sociales a una mesa de diálogo nacional.</p>` }
+    ],
+    autoEvents: [
+      { delay:30000, target:'whatsapp', sender:'Asesor Jefe', text:'Bancada C pide reunión urgente. Necesitamos respuesta en 15 minutos.', requiresTags:['POLITICA'] },
+      { delay:90000, target:'twitter', urgent:true, name:'RPP Noticias', handle:'@RPPNoticias', avatar:'RPP', avatarBg:'#c0392b', text:'🔴 ÚLTIMA HORA: Primeros enfrentamientos en Plaza Bolívar. <span class="hashtag">#VacanciaYa</span>', requiresTags:[] }
+    ]
+  },
+
+  'lasbambas': {
+    id: 'lasbambas',
+    icon: '🚧',
+    title: 'Conflicto Social — Toma Minera (Las Bambas)',
+    desc: 'Comunidades toman acceso a mina. Bloqueo del corredor minero, paralización de operaciones y escalada con presencia policial.',
+    primaryTags: ['RIESGO', 'INTERIOR', 'REGIONAL', 'ECONOMICO'],
+    alertLevel: 'ALERTA SOCIAL',
+    startDate: '08 ABR 2026 · 06:30 hrs',
+    startSeconds: 14400,
+    mapCenter: [-14.122, -72.323],
+    mapZoom: 11,
+    stats: [
+      { label: 'BLOQUEOS ACTIVOS', val: '4', color: 'red' },
+      { label: 'COMUNEROS', val: '~1,200', color: 'amber' },
+      { label: 'DÍAS PARALIZACIÓN', val: '8', color: 'red' },
+      { label: 'PÉRDIDA DIARIA USD M', val: '7.2', color: 'red' }
+    ],
+    incidents: [
+      { lat:-14.122, lng:-72.323, type:'critical', tagType:'INTERIOR',
+        title:'Bloqueo principal Km 70', meta:'Challhuahuacho · T+00:00',
+        label:'🔴 Bloqueo del corredor minero' },
+      { lat:-14.085, lng:-72.401, type:'critical', tagType:'INTERIOR',
+        title:'Toma acceso a mina', meta:'Apurímac · T+00:15',
+        label:'🔴 Acceso a planta bloqueado' },
+      { lat:-14.260, lng:-72.245, type:'warning', tagType:'RIESGO',
+        title:'Bloqueo Capacmarca', meta:'Cusco · T+02:00',
+        label:'🟡 Segundo punto de bloqueo' },
+      { lat:-14.380, lng:-72.180, type:'warning', tagType:'REGIONAL',
+        title:'Asamblea comunal', meta:'Chumbivilcas · T+03:30',
+        label:'🟡 Asamblea extendida' },
+      { lat:-14.150, lng:-72.310, type:'info', tagType:'INTERIOR',
+        title:'Despliegue DINOES', meta:'Refuerzos · T+03:45',
+        label:'ℹ Tropa especializada' }
+    ],
+    timeline: [
+      { time:'06:30', dot:'amber', tagType:'RIESGO', title:'Comunidades inician movilización',
+        desc:'Asamblea de 6 comunidades de Cotabambas declara paro indefinido.' },
+      { time:'07:15', dot:'red', tagType:'INTERIOR', title:'Bloqueo Km 70 confirmado',
+        desc:'~800 comuneros bloquean con piedras, maderos y vehículos.' },
+      { time:'08:00', dot:'red', tagType:'ECONOMICO', title:'Empresa detiene operaciones',
+        desc:'Paralización total. Pérdida USD 7.2M/día.' },
+      { time:'08:30', dot:'amber', tagType:'REGIONAL', title:'Gobernador convoca diálogo',
+        desc:'Gobernador Apurímac pide mesa de diálogo inmediata.' },
+      { time:'09:15', dot:'amber', tagType:'INTERIOR', title:'DINOES llega a zona',
+        desc:'180 efectivos especializados. Mantienen perímetro, no intervienen.' },
+      { time:'09:45', dot:'red', tagType:'COMUNICACION', title:'Líder comunal habla a prensa',
+        desc:'"No nos moveremos hasta que se respeten nuestros acuerdos."' },
+      { time:'10:30', dot:'red', tagType:'INTERIOR', title:'Segundo punto: Capacmarca',
+        desc:'Comunidades de Cusco se suman. Bloqueo se extiende.' }
+    ],
+    twitter: [
+      { name:'Diario Correo', handle:'@diariocorreo', avatar:'DC', avatarBg:'#c0392b',
+        text:'Comunidades Cotabambas bloquean corredor minero. Operaciones paralizadas. <span class="hashtag">#LasBambas</span>',
+        time:'08:12', urgent:true, requiresTags:[] },
+      { name:'Líder Comunal', handle:'@apurimac_resiste', avatar:'AR', avatarBg:'#117a65',
+        text:'No es capricho. Es nuestra agua, nuestra tierra. 12 años esperando cumplimiento.',
+        time:'08:45', requiresTags:[] },
+      { name:'CONFIEP', handle:'@confiep_peru', avatar:'CP', avatarBg:'#1a3a5c',
+        text:'Otro bloqueo en el corredor. Perú pierde competitividad. Necesitamos Estado que garantice operación.',
+        time:'09:20', requiresTags:[] },
+      { name:'Defensoría del Pueblo', handle:'@DefensoriaPeru', avatar:'DP', avatarBg:'#7d3c98',
+        text:'Exhortamos a las partes a deponer acciones violentas y dialogar de buena fe.',
+        time:'09:35', requiresTags:[] },
+      { name:'Reuters Latam', handle:'@ReutersLatam', avatar:'RT', avatarBg:'#1a5276',
+        text:'BREAKING: Peru copper output threatened. Mining giant halts operations. <span class="hashtag">#Copper</span>',
+        time:'10:15', urgent:true, requiresTags:[] },
+      { name:'Embajada China', handle:'@ChinaEmbPeru', avatar:'CN', avatarBg:'#c0392b',
+        text:'Confiamos en el gobierno peruano para resolver pacíficamente la situación.',
+        time:'10:40', requiresTags:['DIPLOMATICO'] }
+    ],
+    whatsapp: [
+      { type:'system', sender:'GRUPO · COMITÉ CRISIS CORREDOR MINERO · 07:00', requiresTags:['POLITICA'] },
+      { sender:'Prefecto Apurímac', text:'Km 70 confirmado. ~800 personas. Líderes piden presencia PCM. Ánimos elevados pero sin violencia.', time:'07:30', requiresTags:['REGIONAL','INTERIOR'] },
+      { sender:'Gerente General Empresa', text:'Operaciones paralizadas. 2,400 trabajadores en campamento. Necesitamos garantías de evacuación si escala.', time:'08:15', requiresTags:['ECONOMICO'] },
+      { sender:'Jefe DINOES Sur', text:'180 efectivos en sitio. Perímetro a 500m. No desalojo sin orden escrita y autorización política. Riesgo víctimas: ALTO.', time:'09:30', requiresTags:['INTERIOR','MILITAR'] },
+      { sender:'Ministra Energía', text:'Paralización cuesta USD 50M acumulados. Empresa contempla fuerza mayor que afecta exportaciones.', time:'09:50', requiresTags:['ECONOMICO','POLITICA'] },
+      { sender:'Vocero Comunidades', text:'Mensaje vía mediador: "No nos movemos sin firma del Presidente en documento de cumplimiento acuerdos 2014".', time:'10:25', requiresTags:['POLITICA','REGIONAL'] },
+      { sender:'Asesor MINEM', text:'Hay 78 acuerdos firmados desde 2012, solo 31 cumplidos. Demanda principal es agua: río Challhuahuacho efectivamente bajo.', time:'10:38', requiresTags:['POLITICA','RIESGO'] }
+    ],
+    sms: [
+      { from:'GOB. REGIONAL APURÍMAC', text:'Carretera 3S bloqueada. 47 camiones varados. 4 pueblos sin suministro. Urge PCM.', time:'08:30', requiresTags:['REGIONAL'] },
+      { from:'SUTRAN TRANSPORTE', text:'12 buses interprovinciales detenidos. 480 pasajeros aislados. Solicitamos FFAA para extracción.', time:'09:05', requiresTags:['INTERIOR'] },
+      { from:'JEFE PNP COTABAMBAS', text:'800 comuneros Km 70. Niños y adultos mayores en primera fila. Desalojo tendrá víctimas. Solicito instrucción política.', time:'09:30', requiresTags:['INTERIOR'] },
+      { from:'MEF DESPACHO', text:'Cálculo: pérdida fiscal -USD 320M anuales si paro >30 días. Crítico para canon minero regional.', time:'10:00', requiresTags:['ECONOMICO'] },
+      { from:'EMBAJADA CHINA', text:'Solicitamos garantías sobre seguridad personal chino (340 ciudadanos en zona).', time:'10:45', requiresTags:['DIPLOMATICO'] },
+      { from:'FISCALÍA APURÍMAC', text:'Investigación preliminar por delitos contra libertad de tránsito. Evaluamos flagrancia.', time:'11:00', requiresTags:['JUDICIAL'] }
+    ],
+    documents: [
+      { id:'reporte-conflicto', class:'SECRETO', icon:'🔴',
+        title:'Reporte Operacional Las Bambas',
+        meta:['ORIGEN: DINI / Conflictos Sociales','FECHA: 08 ABR 2026'],
+        requiresTags:['INTELIGENCIA','INTERIOR'],
+        body:`<h3>1. SITUACIÓN ACTUAL</h3>
+          <p>Bloqueo Km 70 corredor minero del sur. <span class="alert-text">~1,200 personas movilizadas</span> de 6 comunidades Cotabambas + 4 Chumbivilcas. <span class="highlight">Octavo conflicto en 24 meses</span>.</p>
+          <h3>2. ACTORES</h3>
+          <table><tr><th>Actor</th><th>Posición</th><th>Capacidad</th></tr>
+          <tr><td>Frente Defensa Cotabambas</td><td>Conducción</td><td>ALTA</td></tr>
+          <tr><td>Comunidad Fuerabamba</td><td>Acuerdos 2014</td><td>ALTA</td></tr>
+          <tr><td>Empresa minera</td><td>Suspende operaciones</td><td>Recurso legal</td></tr>
+          <tr><td class="alert-text">Asesores externos</td><td>Radicalización</td><td>MEDIA</td></tr></table>
+          <h3>3. DEMANDAS</h3><ul>
+          <li><span class="highlight">Cumplimiento de los 47 acuerdos pendientes desde 2014</span></li>
+          <li>Recategorización EIA</li><li>Compensación uso vías comunales</li>
+          <li>Empleo local sostenible</li><li>Mesa permanente con PCM</li></ul>
+          <h3>4. ESCENARIO RIESGO</h3>
+          <p>Sin respuesta política en <span class="alert-text">48-72 horas</span>: extensión a otros corredores (Antapaccay, Tintaya, Constancia), paro regional escalonado, afectación inversión USD 12B.</p>` },
+      { id:'acuerdos-2014', class:'CONFIDENCIAL', icon:'⚠️',
+        title:'Cumplimiento Acuerdos 2014',
+        meta:['ORIGEN: PCM / Diálogo'],
+        requiresTags:['POLITICA','REGIONAL'],
+        body:`<h3>RESUMEN</h3>
+          <p>De los 78 compromisos del Estado en actas Fuerabamba (2014, 2016, 2018):</p>
+          <table><tr><th>Categoría</th><th>Cumplidos</th><th>Parcial</th><th>Sin cumplir</th></tr>
+          <tr><td>Infraestructura</td><td>14</td><td>8</td><td class="alert-text">5</td></tr>
+          <tr><td>Educación/Salud</td><td>9</td><td>6</td><td class="alert-text">12</td></tr>
+          <tr><td>Empleo local</td><td>4</td><td>3</td><td class="alert-text">11</td></tr>
+          <tr><td>Compensaciones</td><td>4</td><td>2</td><td class="alert-text">8</td></tr>
+          <tr><td><strong>TOTAL</strong></td><td><strong>31</strong></td><td><strong>19</strong></td><td class="alert-text"><strong>36</strong></td></tr></table>
+          <h3>ANÁLISIS</h3>
+          <p><span class="alert-text">Incumplimiento del 46% en 12 años</span> es el factor estructural del conflicto.</p>` },
+      { id:'impacto-mineria', class:'CONFIDENCIAL', icon:'💰',
+        title:'Impacto Económico Paralización',
+        meta:['ORIGEN: MEF'],
+        requiresTags:['ECONOMICO'],
+        body:`<h3>PÉRDIDAS DIRECTAS</h3>
+          <table><tr><th>Concepto</th><th>Diario USD</th><th>Acumulado 8d</th></tr>
+          <tr><td>Producción cobre</td><td>5.8M</td><td class="alert-text">46.4M</td></tr>
+          <tr><td>Logística</td><td>0.9M</td><td>7.2M</td></tr>
+          <tr><td>Servicios</td><td>0.5M</td><td>4.0M</td></tr>
+          <tr><td><strong>TOTAL</strong></td><td><strong>7.2M</strong></td><td><strong class="alert-text">57.6M</strong></td></tr></table>
+          <h3>IMPACTO FISCAL ANUAL</h3>
+          <ul><li>GORE Apurímac: <span class="alert-text">-S/. 480M</span></li>
+          <li>Cotabambas: <span class="alert-text">-S/. 120M</span></li>
+          <li>Tesoro Público: <span class="alert-text">-S/. 320M</span></li></ul>` },
+      { id:'plan-dialogo', class:'PÚBLICO', icon:'📋',
+        title:'Lineamientos Mesa de Diálogo',
+        meta:['ORIGEN: PCM'],
+        requiresTags:[],
+        body:`<h3>OBJETIVOS</h3><ul>
+          <li>Levantar bloqueo en el corto plazo</li>
+          <li>Cronograma de cumplimiento de acuerdos</li>
+          <li>Mecanismo permanente de seguimiento</li>
+          <li>Protocolo para futuras controversias</li></ul>
+          <h3>METODOLOGÍA</h3>
+          <p>Mesa tripartita: Estado (PCM, MINEM, GOREs) — Comunidades — Empresa. Facilitación por Defensoría.</p>` },
+      { id:'cancilleria-china', class:'SECRETO', icon:'🌐',
+        title:'Comunicación Reservada Embajada China',
+        meta:['ORIGEN: Cancillería'],
+        requiresTags:['DIPLOMATICO','POLITICA'],
+        body:`<h3>RESUMEN</h3>
+          <p>Embajada China solicita <span class="alert-text">tres reuniones reservadas</span> en 8 días. Empresa con capital chino mayoritario; el conflicto se monitorea desde Beijing.</p>
+          <h3>POSICIÓN CHINA</h3><ul>
+          <li>Garantías seguridad personal (340 ciudadanos chinos)</li>
+          <li>Preocupación por "patrón recurrente" en operaciones chinas</li>
+          <li>Recuerda inversión china USD 28B en Perú</li>
+          <li>Sugiere "demostrar capacidad de garantizar inversiones"</li></ul>
+          <h3>RECOMENDACIÓN</h3>
+          <p>Mantener comunicación frecuente sin ceder presiones específicas. Mala gestión afecta inversiones futuras.</p>` }
+    ],
+    autoEvents: [
+      { delay:30000, target:'whatsapp', sender:'Prefecto Apurímac', text:'Tensión escala. Comuneros amenazan tomar aeropuerto Andahuaylas si no hay respuesta en 6 horas. ¿Instrucciones?', requiresTags:['REGIONAL'] },
+      { delay:90000, target:'twitter', urgent:true, name:'AP News', handle:'@AP', avatar:'AP', avatarBg:'#1a3a5c', text:'Peru copper crisis deepens. Community leaders threaten airport blockade. <span class="hashtag">#Peru</span>', requiresTags:[] }
+    ]
+  }
+};
+
+// ════════════════════════════════════════
+// SESSION STATE
+// ════════════════════════════════════════
+let session = {
+  scenarioId: null,
+  scenario: null,
+  roles: [],
+  currentParticipant: null,
+  isDirector: false,
+  sessionCode: null,
+  simSeconds: 0
+};
+
 let map = null;
 let markersLayer = null;
+let clockInterval = null;
+let autoEventTimers = [];
 
 // ════════════════════════════════════════
-// LOGIN
+// NAVIGATION
 // ════════════════════════════════════════
-function selectRole(btn, roleId, roleName, roleDept) {
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+function goToDirectorSetup() {
+  document.getElementById('landing-screen').style.display = 'none';
+  document.getElementById('director-setup').style.display = 'block';
+  renderScenarioGrid();
+  if (session.roles.length === 0) loadRolePreset('minimal');
+}
+
+function goToParticipantLogin() {
+  document.getElementById('landing-screen').style.display = 'none';
+  document.getElementById('participant-login').classList.add('show');
+}
+
+function backToLanding() {
+  document.getElementById('director-setup').style.display = 'none';
+  document.getElementById('participant-login').classList.remove('show');
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('landing-screen').style.display = 'flex';
+  stopClock();
+  clearAutoEvents();
+}
+
+function exitToLanding() {
+  if (confirm('¿Salir del ejercicio?')) backToLanding();
+}
+
+// ════════════════════════════════════════
+// DIRECTOR SETUP
+// ════════════════════════════════════════
+function renderScenarioGrid() {
+  const grid = document.getElementById('scenario-grid');
+  grid.innerHTML = '';
+  Object.values(SCENARIOS).forEach(sc => {
+    const card = document.createElement('div');
+    card.className = 'scenario-card';
+    if (session.scenarioId === sc.id) card.classList.add('selected');
+    card.onclick = () => selectScenario(sc.id, card);
+    card.innerHTML = `
+      <div class="sc-icon">${sc.icon}</div>
+      <div class="sc-title">${sc.title}</div>
+      <div class="sc-desc">${sc.desc}</div>
+      <div class="sc-tags">Tags principales: ${sc.primaryTags.join(' · ')}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function selectScenario(id, cardEl) {
+  document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  session.scenarioId = id;
+  session.scenario = SCENARIOS[id];
+  showToast('ESCENARIO SELECCIONADO', SCENARIOS[id].title, 'amber');
+}
+
+function loadRolePreset(preset) {
+  if (preset === 'clear') {
+    session.roles = [];
+  } else if (preset === 'minimal') {
+    session.roles = [
+      { name: 'Presidente', tags: ['POLITICA','INTELIGENCIA'] },
+      { name: 'Primer Ministro', tags: ['POLITICA','COMUNICACION'] },
+      { name: 'Ministro Defensa', tags: ['POLITICA','MILITAR'] },
+      { name: 'Ministro Interior', tags: ['POLITICA','INTERIOR'] }
+    ];
+  } else if (preset === 'full') {
+    session.roles = [
+      { name: 'Presidente', tags: ['POLITICA','INTELIGENCIA','COMUNICACION'] },
+      { name: 'Primer Ministro', tags: ['POLITICA','COMUNICACION','JUDICIAL'] },
+      { name: 'Ministro Defensa', tags: ['POLITICA','MILITAR','INTELIGENCIA'] },
+      { name: 'Ministro Interior', tags: ['POLITICA','INTERIOR','INTELIGENCIA'] },
+      { name: 'Ministro Salud', tags: ['POLITICA','SALUD'] },
+      { name: 'Ministro Economía', tags: ['POLITICA','ECONOMICO'] },
+      { name: 'Canciller', tags: ['POLITICA','DIPLOMATICO'] },
+      { name: 'Vocero / Comunicaciones', tags: ['COMUNICACION'] },
+      { name: 'Jefe INDECI', tags: ['RIESGO','INTERIOR'] },
+      { name: 'Gobernador Regional', tags: ['REGIONAL','RIESGO'] }
+    ];
+  }
+  renderRoleBuilder();
+}
+
+function renderRoleBuilder() {
+  const builder = document.getElementById('role-builder');
+  builder.innerHTML = '';
+  session.roles.forEach((role, idx) => {
+    const row = document.createElement('div');
+    row.className = 'role-row';
+    row.innerHTML = `
+      <div class="role-num">ROL-${String(idx+1).padStart(2,'0')}</div>
+      <input type="text" value="${role.name}" placeholder="Nombre del rol" onchange="updateRoleName(${idx}, this.value)">
+      <div class="tag-selector">
+        ${Object.keys(ACCESS_TAGS).map(key => `
+          <span class="tag-chip ${role.tags.includes(key) ? 'active' : ''}"
+                onclick="toggleTag(${idx},'${key}',this)"
+                title="${ACCESS_TAGS[key].label}">${key}</span>
+        `).join('')}
+      </div>
+      <button class="remove-role" onclick="removeRole(${idx})">×</button>
+    `;
+    builder.appendChild(row);
+  });
+}
+
+function updateRoleName(idx, name) {
+  if (session.roles[idx]) session.roles[idx].name = name;
+}
+
+function toggleTag(roleIdx, tagKey, chip) {
+  const role = session.roles[roleIdx];
+  if (!role) return;
+  const i = role.tags.indexOf(tagKey);
+  if (i >= 0) { role.tags.splice(i,1); chip.classList.remove('active'); }
+  else { role.tags.push(tagKey); chip.classList.add('active'); }
+}
+
+function addRole() {
+  if (session.roles.length >= 10) {
+    showToast('LÍMITE', 'Máximo 10 roles', 'red');
+    return;
+  }
+  session.roles.push({ name: 'Nuevo Rol', tags: [] });
+  renderRoleBuilder();
+}
+
+function removeRole(idx) {
+  session.roles.splice(idx, 1);
+  renderRoleBuilder();
+}
+
+function launchSession() {
+  if (!session.scenarioId) { showToast('ERROR', 'Selecciona un escenario', 'red'); return; }
+  if (session.roles.length === 0) { showToast('ERROR', 'Configura al menos un rol', 'red'); return; }
+
+  session.sessionCode = generateSessionCode();
+  document.getElementById('session-code-value').textContent = session.sessionCode;
+  document.getElementById('session-code-display').style.display = 'block';
+
+  localStorage.setItem('crisissim_session', JSON.stringify({
+    code: session.sessionCode,
+    scenarioId: session.scenarioId,
+    roles: session.roles
+  }));
+
+  setTimeout(() => {
+    session.isDirector = true;
+    session.currentParticipant = { name: 'DIRECTOR', tags: [], isDirector: true };
+    enterApp();
+  }, 1800);
+}
+
+function generateSessionCode() {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const digits = '23456789';
+  let code = '';
+  for (let i=0;i<3;i++) code += letters[Math.floor(Math.random()*letters.length)];
+  code += '-';
+  for (let i=0;i<4;i++) code += digits[Math.floor(Math.random()*digits.length)];
+  return code;
+}
+
+// ════════════════════════════════════════
+// PARTICIPANT LOGIN
+// ════════════════════════════════════════
+function joinSession() {
+  const code = document.getElementById('session-code-input').value.trim().toUpperCase();
+  if (!code) { showToast('ERROR', 'Ingresa el código', 'red'); return; }
+
+  const stored = localStorage.getItem('crisissim_session');
+  if (!stored) { showToast('NO ENCONTRADA', 'El Director debe iniciar primero', 'red'); return; }
+
+  const data = JSON.parse(stored);
+  if (data.code !== code) { showToast('CÓDIGO INVÁLIDO', 'No coincide con sesión activa', 'red'); return; }
+
+  session.sessionCode = data.code;
+  session.scenarioId = data.scenarioId;
+  session.scenario = SCENARIOS[data.scenarioId];
+  session.roles = data.roles;
+
+  renderParticipantRoles();
+  document.getElementById('join-session-btn').style.display = 'none';
+  document.getElementById('session-code-input').disabled = true;
+  document.getElementById('plogin-roles').classList.add('show');
+  document.getElementById('enter-session-btn').style.display = 'block';
+  showToast('SESIÓN VÁLIDA', session.scenario.title, 'cyan');
+}
+
+function renderParticipantRoles() {
+  const container = document.getElementById('plogin-roles');
+  container.innerHTML = '';
+  session.roles.forEach((role, idx) => {
+    const btn = document.createElement('div');
+    btn.className = 'plogin-role-btn';
+    btn.onclick = () => selectParticipantRole(idx, btn);
+    btn.innerHTML = `
+      <div class="pr-num">ROL-${String(idx+1).padStart(2,'0')}</div>
+      <div class="pr-name">${role.name}</div>
+      <div class="pr-status">● DISPONIBLE</div>
+    `;
+    container.appendChild(btn);
+  });
+}
+
+function selectParticipantRole(idx, btn) {
+  document.querySelectorAll('.plogin-role-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  currentRole = { id: roleId, name: roleName, dept: roleDept };
-  document.getElementById('enter-btn').disabled = false;
+  session.currentParticipant = { ...session.roles[idx], isDirector: false };
 }
 
-function enterSimulation() {
-  if (!currentRole) return;
-  document.getElementById('login-screen').style.display = 'none';
-  const app = document.getElementById('app');
-  app.style.display = 'flex';
-
-  document.getElementById('current-role-badge').textContent = currentRole.name;
-
-  if (currentRole.id === 'facilitator') {
-    document.getElementById('tab-facilitator').style.display = 'inline-block';
-  }
-
-  // Filter tab visibility by role
-  applyRolePermissions();
-
-  // Init map
-  setTimeout(initMap, 100);
-
-  // Start clock
-  setInterval(tickClock, 1000);
-
-  // Load initial doc
-  showDoc('sitrep-inicial');
-
-  // Auto-inject events periodically for demo
-  setTimeout(() => autoInjectDemo(), 15000);
-
-  showToast('ACCESO CONCEDIDO', currentRole.name + ' · ' + currentRole.dept, 'cyan');
-}
-
-function exitSimulation() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('enter-btn').disabled = true;
-  currentRole = null;
-}
-
-function applyRolePermissions() {
-  // All roles see comms and situation; only facilitator sees control panel
-  if (currentRole.id === 'facilitator') {
-    document.getElementById('tab-facilitator').style.display = 'inline-block';
-  }
+function enterAsParticipant() {
+  if (!session.currentParticipant) { showToast('ERROR', 'Selecciona un rol', 'red'); return; }
+  session.isDirector = false;
+  enterApp();
 }
 
 // ════════════════════════════════════════
-// CLOCK
+// ENTER APP
 // ════════════════════════════════════════
-function tickClock() {
-  simSeconds++;
-  const h = Math.floor(simSeconds / 3600);
-  const m = Math.floor((simSeconds % 3600) / 60);
-  const s = simSeconds % 60;
-  document.getElementById('sim-time').textContent =
-    `T+${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+function enterApp() {
+  document.getElementById('landing-screen').style.display = 'none';
+  document.getElementById('director-setup').style.display = 'none';
+  document.getElementById('participant-login').classList.remove('show');
+  document.getElementById('app').classList.add('show');
 
-  // Real wall clock
-  const now = new Date();
-  document.getElementById('sim-date').textContent =
-    `15 JUL 2024 · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} hrs`;
+  document.getElementById('scenario-badge').textContent = session.scenario.icon + ' ' + session.scenario.title;
+  const roleBadge = document.getElementById('current-role-badge');
+  roleBadge.textContent = session.isDirector ? '🎯 DIRECTOR' : ('👤 ' + session.currentParticipant.name);
+  roleBadge.classList.toggle('director', session.isDirector);
 
-  const em = Math.floor(simSeconds / 60);
-  document.getElementById('facil-elapsed').textContent =
-    `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
+  const tagsEl = document.getElementById('current-role-tags');
+  tagsEl.innerHTML = '';
+  if (session.isDirector) {
+    tagsEl.innerHTML = '<span class="role-tag-mini" style="background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fbbf24">VISIBILIDAD TOTAL</span>';
+  } else {
+    session.currentParticipant.tags.forEach(t => {
+      tagsEl.innerHTML += `<span class="role-tag-mini">${t}</span>`;
+    });
+  }
+
+  document.getElementById('alert-level').textContent = session.scenario.alertLevel;
+  document.querySelector('.director-only').style.display = session.isDirector ? 'inline-block' : 'none';
+
+  session.simSeconds = session.scenario.startSeconds;
+  startClock();
+
+  renderSitrepView();
+  renderCommsView();
+  renderDocsView();
+  if (session.isDirector) renderDirectorView();
+
+  setTimeout(() => initMap(), 100);
+  scheduleAutoEvents();
+
+  showToast('ACCESO CONCEDIDO',
+    session.isDirector ? 'Modo Director — visibilidad total' : 'Rol: ' + session.currentParticipant.name,
+    'cyan');
+}
+
+// ════════════════════════════════════════
+// TAG FILTERING
+// ════════════════════════════════════════
+function canSee(requiredTags) {
+  if (!requiredTags || requiredTags.length === 0) return true;
+  if (session.isDirector) return true;
+  const userTags = session.currentParticipant.tags || [];
+  return requiredTags.every(t => userTags.includes(t));
+}
+
+function canSeeIncident(inc) {
+  if (session.isDirector) return true;
+  if (!inc.tagType) return true;
+  return session.currentParticipant.tags.includes(inc.tagType);
+}
+
+function canSeeTimeline(t) {
+  if (session.isDirector) return true;
+  if (!t.tagType) return true;
+  return session.currentParticipant.tags.includes(t.tagType);
+}
+
+// ════════════════════════════════════════
+// SITREP
+// ════════════════════════════════════════
+function renderSitrepView() {
+  const sc = session.scenario;
+  const left = document.getElementById('sitrep-left');
+  left.innerHTML = `
+    <div class="panel-section">
+      <div class="panel-section-title">ESTADO ACTUAL</div>
+      ${renderStatsHTML(sc.stats)}
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">INCIDENTES ACTIVOS</div>
+      ${sc.incidents.filter(canSeeIncident).map(inc => `
+        <div class="incident-item ${inc.type}" onclick="focusIncident(${inc.lat},${inc.lng},'${inc.label.replace(/'/g,"\\'")}')">
+          <div class="inc-type">${inc.type === 'critical' ? '■ CRÍTICO' : inc.type === 'warning' ? '● ALERTA' : '◆ INFO'}</div>
+          <div class="inc-title">${inc.title}</div>
+          <div class="inc-meta"><span>${inc.meta.split('·')[0]}</span><span>${inc.meta.split('·')[1]||''}</span></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const right = document.getElementById('sitrep-right');
+  right.innerHTML = `
+    <div class="panel-section" style="border-bottom:none">
+      <div class="panel-section-title">LÍNEA DE TIEMPO</div>
+    </div>
+    ${sc.timeline.filter(canSeeTimeline).map(t => `
+      <div class="timeline-item">
+        <div class="tl-time">${t.time}</div>
+        <div class="tl-dot ${t.dot}"></div>
+        <div class="tl-content">
+          <div class="tl-title">${t.title}</div>
+          <div class="tl-desc">${t.desc}</div>
+        </div>
+      </div>
+    `).join('')}
+    <div id="tl-inject-zone"></div>
+  `;
+}
+
+function renderStatsHTML(stats) {
+  let html = '';
+  for (let i=0; i<stats.length; i+=2) {
+    html += '<div class="stat-row">';
+    html += `<div class="stat-box"><span class="stat-val ${stats[i].color||''}">${stats[i].val}</span><div class="stat-label">${stats[i].label}</div></div>`;
+    if (stats[i+1]) {
+      html += `<div class="stat-box"><span class="stat-val ${stats[i+1].color||''}">${stats[i+1].val}</span><div class="stat-label">${stats[i+1].label}</div></div>`;
+    }
+    html += '</div>';
+  }
+  return html;
 }
 
 // ════════════════════════════════════════
 // MAP
 // ════════════════════════════════════════
 function initMap() {
-  map = L.map('crisis-map', {
-    center: [-16.409, -71.537],
-    zoom: 12,
-    zoomControl: true
-  });
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-
+  if (map) { map.remove(); map = null; }
+  const sc = session.scenario;
+  map = L.map('crisis-map', { center: sc.mapCenter, zoom: sc.mapZoom, zoomControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(map);
   markersLayer = L.layerGroup().addTo(map);
   addMapMarkers();
 }
@@ -2102,81 +1731,486 @@ function initMap() {
 function addMapMarkers() {
   if (!markersLayer) return;
   markersLayer.clearLayers();
-
-  const incidents = [
-    { lat: -16.409, lng: -71.537, type: 'critical', label: '🔴 Hospital Goyeneche — COLAPSO', color: '#e03030' },
-    { lat: -16.398, lng: -71.502, type: 'critical', label: '🔴 Cono Norte — DESLIZAMIENTO', color: '#e03030' },
-    { lat: -16.420, lng: -71.520, type: 'warning',  label: '🟡 Mercado San Camilo — INCENDIO', color: '#f0a500' },
-    { lat: -16.452, lng: -71.555, type: 'warning',  label: '🟡 Presa La Tomilla — FISURA', color: '#f0a500' },
-    { lat: -16.435, lng: -71.530, type: 'resource', label: '🟢 Hospital Campo — Lambramani', color: '#00c870' },
-    { lat: -16.390, lng: -71.560, type: 'resource', label: '🟢 Centro Evacuados — Estadio', color: '#00c870' },
-    { lat: -16.410, lng: -71.545, type: 'epicenter',label: '⭐ EPICENTRO (ref.)', color: '#00c8e0' },
-  ];
-
-  incidents.forEach(inc => {
+  session.scenario.incidents.filter(canSeeIncident).forEach(inc => {
+    const color = inc.type === 'critical' ? '#f87171' : inc.type === 'warning' ? '#fbbf24' : '#60a5fa';
     const icon = L.divIcon({
-      html: `<div style="
-        width:14px;height:14px;border-radius:50%;
-        background:${inc.color};
-        border:2px solid rgba(255,255,255,0.5);
-        box-shadow:0 0 8px ${inc.color};
-      "></div>`,
-      className: '',
-      iconSize: [14, 14],
-      iconAnchor: [7, 7]
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,0.5);box-shadow:0 0 8px ${color};"></div>`,
+      className: '', iconSize: [14,14], iconAnchor: [7,7]
     });
-
     L.marker([inc.lat, inc.lng], { icon })
-      .bindPopup(`<div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#d8e8f0;padding:2px">${inc.label}</div>`)
+      .bindPopup(`<div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#e2eaf5;padding:2px">${inc.label}</div>`)
       .addTo(markersLayer);
   });
-
-  // Risk circle around epicenter
-  L.circle([-16.409, -71.537], {
-    radius: 5000,
-    color: '#e03030',
-    fillColor: '#e03030',
-    fillOpacity: 0.07,
-    weight: 1,
-    dashArray: '4,4'
-  }).addTo(markersLayer);
 }
 
 function focusIncident(lat, lng, label) {
   if (!map) return;
   map.setView([lat, lng], 14, { animate: true });
-  switchTab('sitrep', document.querySelector('.nav-tab'));
-  showToast('INCIDENTE SELECCIONADO', label, 'amber');
-}
-
-function toggleLayer(btn, layer) {
-  document.querySelectorAll('.map-layer-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  showToast('UBICACIÓN', label, 'amber');
 }
 
 // ════════════════════════════════════════
-// TABS
+// COMMS
 // ════════════════════════════════════════
-function switchTab(tabId, btn) {
-  document.querySelectorAll('.tab-view').forEach(v => {
-    v.style.display = 'none';
-    v.classList.remove('active');
+function renderCommsView() {
+  const sc = session.scenario;
+  const view = document.getElementById('view-comms');
+  const activeTab = document.querySelector('.nav-tab.active').dataset.tab;
+
+  const visibleWA = sc.whatsapp.filter(m => canSee(m.requiresTags));
+  const visibleSMS = sc.sms.filter(m => canSee(m.requiresTags));
+  const visibleTW = sc.twitter.filter(m => canSee(m.requiresTags));
+
+  const channels = [];
+  if (visibleWA.length > 0) channels.push('wa');
+  if (visibleTW.length > 0) channels.push('tw');
+  if (visibleSMS.length > 0) channels.push('sms');
+
+  view.className = `tab-view cols-${channels.length || 1}` + (activeTab === 'comms' ? ' active' : '');
+
+  if (channels.length === 0) {
+    view.innerHTML = `
+      <div class="locked-notice" style="margin:auto">
+        <div class="ln-icon">🔒</div>
+        <div class="ln-title">SIN ACCESO A CANALES</div>
+        <div class="ln-desc">Tu rol no tiene permisos para los canales activos.</div>
+        <div class="ln-tags">TUS TAGS: ${session.currentParticipant.tags.join(' · ') || 'ninguna'}</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+
+  if (channels.includes('wa')) {
+    html += `
+      <div class="comm-panel">
+        <div class="comm-header">
+          <div class="comm-icon whatsapp">💬</div>
+          <div>
+            <div class="comm-title" style="color:var(--accent-green)">WHATSAPP</div>
+            <div class="comm-subtitle">Comité de Crisis</div>
+          </div>
+          <div class="comm-count">${visibleWA.length}</div>
+        </div>
+        <div class="messages-feed" id="wa-feed">
+          ${visibleWA.map(renderWAMsg).join('')}
+        </div>
+        <div class="comm-input-area">
+          <input class="comm-input" id="wa-input" type="text" placeholder="Escribir mensaje...">
+          <button class="send-btn" onclick="sendWAMessage()">ENVIAR</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (channels.includes('tw')) {
+    html += `
+      <div class="comm-panel">
+        <div class="comm-header">
+          <div class="comm-icon twitter">𝕏</div>
+          <div>
+            <div class="comm-title" style="color:#1d9bf0">X / TWITTER</div>
+            <div class="comm-subtitle">Monitor público</div>
+          </div>
+          <div class="comm-count">${visibleTW.length}</div>
+        </div>
+        <div class="messages-feed" id="tw-feed">
+          ${visibleTW.map(renderTweet).join('')}
+        </div>
+        <div class="comm-input-area">
+          <input class="comm-input" id="tw-input" type="text" placeholder="Tweet oficial...">
+          <button class="send-btn" style="background:var(--accent-blue);color:white" onclick="sendTweet()">PUBLICAR</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (channels.includes('sms')) {
+    html += `
+      <div class="comm-panel">
+        <div class="comm-header">
+          <div class="comm-icon sms">📲</div>
+          <div>
+            <div class="comm-title" style="color:var(--accent-purple)">SMS / CAMPO</div>
+            <div class="comm-subtitle">Mensajes operativos</div>
+          </div>
+          <div class="comm-count">${visibleSMS.length}</div>
+        </div>
+        <div class="messages-feed" id="sms-feed">
+          ${visibleSMS.map(renderSMS).join('')}
+        </div>
+        <div class="comm-input-area">
+          <input class="comm-input" id="sms-input" type="text" placeholder="Responder...">
+          <button class="send-btn" style="background:var(--accent-purple);color:white" onclick="sendSMS()">ENVIAR</button>
+        </div>
+      </div>
+    `;
+  }
+
+  view.innerHTML = html;
+}
+
+function renderWAMsg(m) {
+  if (m.type === 'system') return `<div class="wa-msg system">— ${m.sender} —</div>`;
+  return `
+    <div class="wa-msg incoming">
+      <div class="msg-sender">${m.sender}</div>
+      <div class="msg-text">${m.text}</div>
+      <div class="msg-time">${m.time}</div>
+    </div>
+  `;
+}
+
+function renderTweet(t) {
+  return `
+    <div class="tweet ${t.urgent ? 'urgent' : ''}">
+      <div class="tweet-header">
+        <div class="tweet-avatar" style="background:${t.avatarBg};color:white">${t.avatar}</div>
+        <div class="tweet-meta">
+          <div class="tweet-name">${t.name}</div>
+          <div class="tweet-handle">${t.handle}</div>
+        </div>
+      </div>
+      <div class="tweet-text">${t.text}</div>
+      <div class="tweet-footer"><span class="tweet-time">${t.time}</span></div>
+    </div>
+  `;
+}
+
+function renderSMS(s) {
+  return `
+    <div class="sms-msg">
+      <div class="sms-from">${s.from}</div>
+      <div class="sms-text">${s.text}</div>
+      <div class="sms-meta"><span>SMS</span><span>${s.time}</span></div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════
+// DOCS
+// ════════════════════════════════════════
+function renderDocsView() {
+  const sc = session.scenario;
+  const visible = sc.documents.filter(d => canSee(d.requiresTags));
+
+  const sidebar = document.getElementById('docs-sidebar');
+  if (visible.length === 0) {
+    sidebar.innerHTML = `
+      <div class="locked-notice" style="margin:16px">
+        <div class="ln-icon">🔒</div>
+        <div class="ln-title">SIN DOCUMENTOS</div>
+        <div class="ln-desc">Tu rol no tiene acceso a documentos.</div>
+      </div>
+    `;
+    document.getElementById('doc-viewer-content').innerHTML = '';
+    return;
+  }
+
+  const groups = { 'SECRETO': [], 'CONFIDENCIAL': [], 'PÚBLICO': [] };
+  visible.forEach(d => groups[d.class].push(d));
+
+  let html = '';
+  Object.entries(groups).forEach(([clazz, docs]) => {
+    if (docs.length === 0) return;
+    html += `
+      <div class="docs-category">
+        <div class="docs-cat-header">${clazz} <span class="docs-cat-count">${docs.length}</span></div>
+        ${docs.map(d => `
+          <div class="doc-item" onclick="showDoc('${d.id}',this)">
+            <div class="doc-icon">${d.icon}</div>
+            <div class="doc-name">${d.title}</div>
+            <div class="doc-class ${clazz==='SECRETO'?'secret':clazz==='CONFIDENCIAL'?'conf':'pub'}">${clazz.substr(0,4)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
   });
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  sidebar.innerHTML = html;
 
-  const view = document.getElementById('view-' + tabId);
-  view.style.display = '';
-  view.classList.add('active');
+  if (visible.length > 0) showDoc(visible[0].id, sidebar.querySelector('.doc-item'));
+}
 
-  if (btn) btn.classList.add('active');
+function showDoc(docId, el) {
+  const doc = session.scenario.documents.find(d => d.id === docId);
+  if (!doc) return;
+  document.querySelectorAll('.doc-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
 
-  if (tabId === 'sitrep') {
-    setTimeout(() => { if (map) map.invalidateSize(); }, 100);
+  const classColor = doc.class === 'SECRETO' ? '#f87171' : doc.class === 'CONFIDENCIAL' ? '#fbbf24' : '#8aa4bf';
+  document.getElementById('doc-viewer-content').innerHTML = `
+    <div class="doc-viewer-header">
+      <div class="doc-classification" style="border-color:${classColor};color:${classColor}">${doc.class}</div>
+      <div class="doc-title">${doc.title}</div>
+      <div class="doc-meta-row">${doc.meta.map(m => `<span>${m}</span>`).join('')}</div>
+    </div>
+    <div class="doc-body">${doc.body}</div>
+  `;
+}
+
+// ════════════════════════════════════════
+// DIRECTOR PANEL
+// ════════════════════════════════════════
+function renderDirectorView() {
+  const view = document.getElementById('view-director');
+  view.innerHTML = `
+    <div class="facil-panel">
+      <div class="facil-panel-header">
+        <div class="facil-panel-title">INYECTAR EVENTO</div>
+        <div class="facil-panel-subtitle">Eventos dirigidos a roles específicos</div>
+      </div>
+      <div class="facil-content">
+        <div class="inject-form">
+          <div class="form-group">
+            <label>Canal</label>
+            <select class="form-select" id="inject-channel">
+              <option value="timeline">📌 Línea de Tiempo</option>
+              <option value="whatsapp">💬 WhatsApp</option>
+              <option value="twitter">𝕏 Twitter</option>
+              <option value="sms">📲 SMS Campo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Urgencia</label>
+            <select class="form-select" id="inject-level">
+              <option value="red">🔴 Crítico</option>
+              <option value="amber">🟡 Alerta</option>
+              <option value="blue">🔵 Info</option>
+              <option value="green">🟢 Positivo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Visible para roles con etiquetas (vacío = público)</label>
+            <div class="tag-targeting" id="inject-tag-targeting">
+              ${Object.keys(ACCESS_TAGS).map(k => `
+                <span class="tag-chip" onclick="this.classList.toggle('active')" data-tag="${k}">${k}</span>
+              `).join('')}
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Remitente</label>
+            <input class="form-input" id="inject-sender" type="text" placeholder="Ej: Asesor Político">
+          </div>
+          <div class="form-group">
+            <label>Título</label>
+            <input class="form-input" id="inject-title" type="text" placeholder="Título del evento">
+          </div>
+          <div class="form-group">
+            <label>Mensaje</label>
+            <textarea class="form-textarea" id="inject-body" placeholder="Detalle del evento..."></textarea>
+          </div>
+          <button class="inject-btn" onclick="injectEvent()">⬡ INYECTAR EVENTO</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="facil-panel">
+      <div class="facil-panel-header">
+        <div class="facil-panel-title">EVENTOS DEL ESCENARIO</div>
+        <div class="facil-panel-subtitle">Disparar eventos pre-armados</div>
+      </div>
+      <div class="facil-content">
+        ${session.scenario.autoEvents ? session.scenario.autoEvents.map((ev,i) => `
+          <button class="control-btn" onclick="triggerAutoEvent(${i})">
+            ⚡ Disparar evento del guion #${i+1}
+          </button>
+        `).join('') : ''}
+        <button class="control-btn danger" onclick="confirmReset()">↺ REINICIAR EJERCICIO</button>
+
+        <div style="margin-top:20px">
+          <div class="panel-section-title" style="margin-bottom:10px">REGISTRO INYECCIONES</div>
+          <div class="inject-log" id="inject-log">
+            <div class="log-entry">
+              <div class="log-time">--:--</div>
+              <div class="log-msg"><strong>SISTEMA</strong> — ${session.scenario.title}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="facil-panel">
+      <div class="facil-panel-header">
+        <div class="facil-panel-title">ROLES CONFIGURADOS</div>
+        <div class="facil-panel-subtitle">Participantes del ejercicio</div>
+      </div>
+      <div class="facil-content">
+        <div class="role-status-grid">
+          ${session.roles.map((r,i) => `
+            <div class="role-status-item">
+              <div class="role-online-dot offline"></div>
+              <div style="flex:1">
+                <div class="role-status-name">${r.name}</div>
+                <div style="font-size:9px;color:var(--text-dim);font-family:var(--font-mono);margin-top:2px">${r.tags.join(' · ') || 'sin tags'}</div>
+              </div>
+              <div class="role-status-meta">R-${String(i+1).padStart(2,'0')}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="margin-top:20px">
+          <div class="panel-section-title" style="margin-bottom:10px">CÓDIGO DE SESIÓN</div>
+          <div class="session-code-display">
+            <div class="sc-label">COMPARTIR CON PARTICIPANTES</div>
+            <div class="sc-code">${session.sessionCode}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function injectEvent() {
+  const channel = document.getElementById('inject-channel').value;
+  const level = document.getElementById('inject-level').value;
+  const sender = document.getElementById('inject-sender').value.trim() || 'DIRECTOR';
+  const title = document.getElementById('inject-title').value.trim();
+  const body = document.getElementById('inject-body').value.trim();
+  const targetTags = Array.from(document.querySelectorAll('#inject-tag-targeting .tag-chip.active')).map(c => c.dataset.tag);
+
+  if (!title && !body) { showToast('ERROR', 'Escribe título o mensaje', 'red'); return; }
+
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  if (channel === 'timeline') {
+    const zone = document.getElementById('tl-inject-zone');
+    if (zone) {
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = `
+        <div class="tl-time">${time}</div>
+        <div class="tl-dot ${level}"></div>
+        <div class="tl-content">
+          <div class="tl-title">${title}</div>
+          <div class="tl-desc">${body}</div>
+        </div>
+      `;
+      zone.parentNode.insertBefore(item, zone);
+    }
   }
 
-  if (tabId === 'comms') {
-    document.getElementById('badge-comms').style.display = 'none';
+  if (channel === 'whatsapp') {
+    const feed = document.getElementById('wa-feed');
+    if (feed) {
+      const msg = document.createElement('div');
+      msg.className = 'wa-msg incoming';
+      msg.innerHTML = `<div class="msg-sender">${sender}</div><div class="msg-text">${body || title}</div><div class="msg-time">${time}</div>`;
+      feed.appendChild(msg);
+      feed.scrollTop = feed.scrollHeight;
+    }
   }
+
+  if (channel === 'twitter') {
+    const feed = document.getElementById('tw-feed');
+    if (feed) {
+      const t = document.createElement('div');
+      t.className = `tweet ${level==='red'?'urgent':''}`;
+      t.innerHTML = `
+        <div class="tweet-header">
+          <div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div>
+          <div class="tweet-meta">
+            <div class="tweet-name">${sender}</div>
+            <div class="tweet-handle">@evento_${time.replace(':','')}</div>
+          </div>
+        </div>
+        <div class="tweet-text">${body || title}</div>
+        <div class="tweet-footer"><span class="tweet-time">${time}</span></div>
+      `;
+      feed.insertBefore(t, feed.firstChild);
+    }
+  }
+
+  if (channel === 'sms') {
+    const feed = document.getElementById('sms-feed');
+    if (feed) {
+      const s = document.createElement('div');
+      s.className = 'sms-msg';
+      s.innerHTML = `<div class="sms-from">${sender.toUpperCase()}</div><div class="sms-text">${body || title}</div><div class="sms-meta"><span>${title}</span><span>${time}</span></div>`;
+      feed.appendChild(s);
+      feed.scrollTop = feed.scrollHeight;
+    }
+  }
+
+  const log = document.getElementById('inject-log');
+  if (log) {
+    const e = document.createElement('div');
+    e.className = 'log-entry';
+    const tagInfo = targetTags.length > 0 ? `→ [${targetTags.join(',')}]` : '→ PÚBLICO';
+    e.innerHTML = `<div class="log-time">${time}</div><div class="log-msg"><strong>DIR</strong> · ${channel.toUpperCase()} ${tagInfo}: ${title || body.substring(0,30)}</div>`;
+    log.appendChild(e);
+  }
+
+  document.getElementById('inject-title').value = '';
+  document.getElementById('inject-body').value = '';
+  document.getElementById('inject-sender').value = '';
+  document.querySelectorAll('#inject-tag-targeting .tag-chip.active').forEach(c => c.classList.remove('active'));
+
+  showToast('EVENTO INYECTADO', `${channel.toUpperCase()} · ${title || 'sin título'}`, 'amber');
+}
+
+function triggerAutoEvent(i) {
+  const ev = session.scenario.autoEvents[i];
+  if (!ev) return;
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  if (ev.target === 'whatsapp' && canSee(ev.requiresTags)) {
+    const feed = document.getElementById('wa-feed');
+    if (feed) {
+      const msg = document.createElement('div');
+      msg.className = 'wa-msg incoming';
+      msg.innerHTML = `<div class="msg-sender">${ev.sender}</div><div class="msg-text">${ev.text}</div><div class="msg-time">${time}</div>`;
+      feed.appendChild(msg);
+      feed.scrollTop = feed.scrollHeight;
+    }
+  }
+
+  if (ev.target === 'twitter' && canSee(ev.requiresTags)) {
+    const feed = document.getElementById('tw-feed');
+    if (feed) {
+      const t = document.createElement('div');
+      t.className = `tweet ${ev.urgent?'urgent':''}`;
+      t.innerHTML = `
+        <div class="tweet-header">
+          <div class="tweet-avatar" style="background:${ev.avatarBg};color:white">${ev.avatar}</div>
+          <div class="tweet-meta">
+            <div class="tweet-name">${ev.name}</div>
+            <div class="tweet-handle">${ev.handle}</div>
+          </div>
+        </div>
+        <div class="tweet-text">${ev.text}</div>
+        <div class="tweet-footer"><span class="tweet-time">${time}</span></div>
+      `;
+      feed.insertBefore(t, feed.firstChild);
+    }
+  }
+
+  showToast('EVENTO DISPARADO', `Guion #${i+1}`, 'amber');
+}
+
+function confirmReset() {
+  if (confirm('¿Reiniciar el ejercicio?')) {
+    localStorage.removeItem('crisissim_session');
+    location.reload();
+  }
+}
+
+function scheduleAutoEvents() {
+  clearAutoEvents();
+  if (!session.scenario.autoEvents) return;
+  if (!session.isDirector) {
+    session.scenario.autoEvents.forEach((ev,i) => {
+      const timer = setTimeout(() => triggerAutoEvent(i), ev.delay);
+      autoEventTimers.push(timer);
+    });
+  }
+}
+
+function clearAutoEvents() {
+  autoEventTimers.forEach(t => clearTimeout(t));
+  autoEventTimers = [];
 }
 
 // ════════════════════════════════════════
@@ -2186,404 +2220,90 @@ function sendWAMessage() {
   const input = document.getElementById('wa-input');
   const text = input.value.trim();
   if (!text) return;
-
-  const feed = document.getElementById('wa-feed');
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
+  const feed = document.getElementById('wa-feed');
   const msg = document.createElement('div');
   msg.className = 'wa-msg outgoing';
-  msg.innerHTML = `
-    <div class="msg-sender">${currentRole ? currentRole.name.replace('👤 ','') : 'YO'}</div>
-    <div class="msg-text">${text}</div>
-    <div class="msg-time">${time} ✓✓</div>
-  `;
+  msg.innerHTML = `<div class="msg-sender">${session.isDirector?'DIRECTOR':session.currentParticipant.name}</div><div class="msg-text">${text}</div><div class="msg-time">${time} ✓✓</div>`;
   feed.appendChild(msg);
   feed.scrollTop = feed.scrollHeight;
   input.value = '';
 }
 
 function sendTweet() {
-  const input = document.getElementById('tweet-input');
+  const input = document.getElementById('tw-input');
   const text = input.value.trim();
   if (!text) return;
-
-  const feed = document.getElementById('twitter-feed');
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
+  const feed = document.getElementById('tw-feed');
   const tweet = document.createElement('div');
   tweet.className = 'tweet';
   tweet.style.borderLeft = '3px solid var(--accent-blue)';
   tweet.innerHTML = `
     <div class="tweet-header">
-      <div class="tweet-avatar" style="background:#1a3a5c;color:#60a0ff">GOB</div>
+      <div class="tweet-avatar" style="background:#1a3a5c;color:#60a5fa">GOB</div>
       <div class="tweet-meta">
-        <div class="tweet-name">Gobierno del Perú</div>
-        <div class="tweet-handle">@GobiernoPeru ✓</div>
+        <div class="tweet-name">${session.isDirector?'Cuenta oficial':session.currentParticipant.name}</div>
+        <div class="tweet-handle">@oficial ✓</div>
       </div>
     </div>
     <div class="tweet-text">${text}</div>
-    <div class="tweet-footer">
-      <span class="tweet-stat">🔁 0</span>
-      <span class="tweet-stat">❤ 0</span>
-      <span class="tweet-time">${time}</span>
-    </div>
+    <div class="tweet-footer"><span class="tweet-time">${time}</span></div>
   `;
   feed.insertBefore(tweet, feed.firstChild);
   input.value = '';
-  showToast('TWEET PUBLICADO', 'Tu mensaje oficial está live en @GobiernoPeru', 'blue');
+  showToast('TWEET PUBLICADO', 'En línea oficial', 'cyan');
 }
 
 function sendSMS() {
   const input = document.getElementById('sms-input');
   const text = input.value.trim();
   if (!text) return;
-
-  const feed = document.getElementById('sms-feed');
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  const sms = document.createElement('div');
-  sms.className = 'sms-msg';
-  sms.style.borderLeftColor = 'var(--accent-cyan)';
-  sms.innerHTML = `
-    <div class="sms-from">${currentRole ? currentRole.name.replace('👤 ','') : 'TÚ'} → CAMPO</div>
-    <div class="sms-text">${text}</div>
-    <div class="sms-meta"><span>Enviado</span><span>${time}</span></div>
-  `;
-  feed.appendChild(sms);
+  const feed = document.getElementById('sms-feed');
+  const s = document.createElement('div');
+  s.className = 'sms-msg';
+  s.style.borderLeftColor = 'var(--accent-cyan)';
+  s.innerHTML = `<div class="sms-from">${session.isDirector?'DIRECTOR':session.currentParticipant.name} → CAMPO</div><div class="sms-text">${text}</div><div class="sms-meta"><span>Enviado</span><span>${time}</span></div>`;
+  feed.appendChild(s);
   feed.scrollTop = feed.scrollHeight;
   input.value = '';
 }
 
 // ════════════════════════════════════════
-// DOCUMENTS
+// TABS
 // ════════════════════════════════════════
-const DOCS = {
-  'sitrep-inicial': {
-    class: 'SECRETO', title: 'SITREP Inicial — Terremoto Arequipa',
-    meta: ['ORIGEN: COEN / INDECI', 'FECHA: 15 JUL 2024 · 07:15', 'DISTRIBUCIÓN: COMITÉ CRISIS NACIONAL'],
-    html: `
-      <h3>1. SITUACIÓN GENERAL</h3>
-      <p>El <span class="highlight">15 de julio de 2024 a las 06:45 horas (hora local)</span>, el Instituto Geofísico del Perú (IGP) registró un sismo de <span class="alert-text">magnitud 7.8 Mw</span> con epicentro ubicado a 45 km al suroeste de la ciudad de Arequipa, a una profundidad focal de 12 km. El evento fue sentido en las regiones de Arequipa, Moquegua, Puno, Cusco y Lima.</p>
-      <h3>2. DAÑOS CONFIRMADOS (T+00:30)</h3>
-      <table>
-        <tr><th>Indicador</th><th>Cifra</th><th>Fuente</th></tr>
-        <tr><td>Fallecidos confirmados</td><td class="alert-text">87</td><td>MINSA</td></tr>
-        <tr><td>Heridos hospitalizados</td><td>634</td><td>MINSA</td></tr>
-        <tr><td>Estructuras colapsadas</td><td>312</td><td>INDECI</td></tr>
-        <tr><td>Personas sin comunicación</td><td>~15,000</td><td>OSIPTEL</td></tr>
-      </table>
-      <h3>3. INFRAESTRUCTURA CRÍTICA AFECTADA</h3>
-      <ul>
-        <li><span class="alert-text">Hospital Goyeneche</span>: colapso parcial ala sur. 40+ personas atrapadas.</li>
-        <li><span class="highlight">Presa La Tomilla</span>: fisura detectada en muro sur. En monitoreo continuo.</li>
-        <li><span class="highlight">Aeropuerto Rodríguez Ballón</span>: pista operativa. Torre de control con daños menores.</li>
-        <li>Red eléctrica: 78% de Arequipa sin suministro.</li>
-      </ul>
-      <h3>4. ACCIONES INMEDIATAS REQUERIDAS</h3>
-      <ul>
-        <li>Declarar <span class="alert-text">Estado de Emergencia Nacional</span> — región Arequipa</li>
-        <li>Activar protocolo de evacuación zonas bajo influencia Presa La Tomilla</li>
-        <li>Coordinar ingreso de brigadas SAR internacionales (OFDA/USAR)</li>
-        <li>Establecer corredor humanitario Lima–Arequipa</li>
-      </ul>
-    `
-  },
-  'presa': {
-    class: 'SECRETO', title: 'Informe Técnico: Estado Presa La Tomilla',
-    meta: ['ORIGEN: ANA / SENAMHI', 'FECHA: 15 JUL 2024 · 07:55', 'DISTRIBUCIÓN: RESTRINGIDA'],
-    html: `
-      <h3>1. DATOS TÉCNICOS</h3>
-      <p>La Presa La Tomilla es una infraestructura de <span class="highlight">tipo gravedad de concreto</span>, con capacidad de 12.5 millones de m³, construida en 1963. Opera al 87% de capacidad al momento del sismo.</p>
-      <h3>2. EVALUACIÓN POST-SISMO</h3>
-      <table>
-        <tr><th>Parámetro</th><th>Estado</th></tr>
-        <tr><td>Fisura muro sur</td><td class="alert-text">CONFIRMADA — 4.2 m longitud</td></tr>
-        <tr><td>Filtración</td><td class="alert-text">85 L/s (normal: 2 L/s)</td></tr>
-        <tr><td>Nivel embalse</td><td>87.3% capacidad</td></tr>
-        <tr><td>Tiempo estimado falla total</td><td class="alert-text">4-8 horas</td></tr>
-      </table>
-      <h3>3. ÁREA DE INUNDACIÓN PROYECTADA</h3>
-      <p>En caso de falla total, el caudal liberado inundaría los distritos de <span class="alert-text">Sachaca, Tiabaya, La Joya y Hunter</span>, con población estimada de 85,000 personas. Profundidad máxima de inundación: 3.5 metros en zonas bajas.</p>
-      <h3>4. RECOMENDACIÓN TÉCNICA</h3>
-      <p class="highlight">EVACUACIÓN INMEDIATA de zonas de riesgo. No esperar confirmación de falla. Ventana de acción segura: máximo 3 horas desde ahora.</p>
-    `
-  },
-  'eval-danos': {
-    class: 'SECRETO', title: 'Evaluación Preliminar de Daños — T+02:00',
-    meta: ['ORIGEN: INDECI / COEN', 'FECHA: 15 JUL 2024 · 08:45', 'DISTRIBUCIÓN: COMITÉ CRISIS'],
-    html: `
-      <h3>RESUMEN EJECUTIVO</h3>
-      <p>Cifras preliminares actualizadas a las 08:45 horas. Los datos son <span class="alert-text">estimaciones en revisión continua</span>. La magnitud real del desastre podría ser 2-3 veces mayor en zonas de comunicación interrumpida.</p>
-      <table>
-        <tr><th>Categoría</th><th>Dato</th></tr>
-        <tr><td>Fallecidos</td><td class="alert-text">312 (en aumento)</td></tr>
-        <tr><td>Heridos graves</td><td>1,847</td></tr>
-        <tr><td>Desaparecidos</td><td>89+</td></tr>
-        <tr><td>Damnificados</td><td>~120,000</td></tr>
-        <tr><td>Viviendas colapsadas</td><td>4,230</td></tr>
-        <tr><td>Viviendas inhabitables</td><td>18,700</td></tr>
-        <tr><td>Colegios destruidos</td><td>47</td></tr>
-        <tr><td>Establecimientos salud</td><td>23 afectados, 8 inoperativos</td></tr>
-      </table>
-      <h3>NECESIDADES PRIORITARIAS (72 hrs)</h3>
-      <ul>
-        <li>400 toneladas de alimentos y agua potable</li>
-        <li>120,000 unidades de kit de emergencia</li>
-        <li>500 carpas para albergues temporales</li>
-        <li>20 grupos electrógenos industriales</li>
-        <li>Personal médico: 800 profesionales adicionales</li>
-      </ul>
-    `
-  },
-  'plan-evacuacion': {
-    class: 'CONFIDENCIAL', title: 'Plan de Evacuación — Región Arequipa',
-    meta: ['ORIGEN: INDECI / GRA', 'VERSIÓN: 2024-v3.1'],
-    html: `
-      <h3>ZONAS DE EVACUACIÓN PRIORITARIA</h3>
-      <table>
-        <tr><th>Zona</th><th>Población</th><th>Albergue Destino</th><th>Ruta</th></tr>
-        <tr><td>Sachaca (Zona A)</td><td>22,400</td><td>Estadio Melgar</td><td>Av. Aviación Norte</td></tr>
-        <tr><td>Tiabaya</td><td>18,600</td><td>Coliseo Arequipa</td><td>Ruta 30</td></tr>
-        <tr><td>Cono Norte-Alta</td><td>31,000</td><td>Parque Industrial</td><td>Vía Evitamiento</td></tr>
-        <tr><td>Cercado Histórico</td><td>8,200</td><td>Campus UNSA</td><td>Av. Venezuela</td></tr>
-      </table>
-      <h3>RECURSOS DE EVACUACIÓN DISPONIBLES</h3>
-      <ul>
-        <li>Buses urbanos disponibles: 340 (capacidad 50 pax c/u)</li>
-        <li>Vehículos militares: 48 camiones + 12 blindados</li>
-        <li>Helicópteros para zonas inaccesibles: 3 disponibles (4 por llegar)</li>
-      </ul>
-    `
-  },
-  'recursos': {
-    class: 'CONFIDENCIAL', title: 'Inventario Recursos Humanitarios',
-    meta: ['ORIGEN: MINSA / MIDIS / FFAA', 'ACTUALIZADO: 08:30'],
-    html: `
-      <h3>ALMACENES PREPOSICIONADOS — AREQUIPA</h3>
-      <table>
-        <tr><th>Almacén</th><th>Recurso</th><th>Cant. Disponible</th><th>Estado</th></tr>
-        <tr><td>INDECI AQP</td><td>Kits emergencia</td><td>18,000 u.</td><td class="highlight">Disponible</td></tr>
-        <tr><td>MINSA AQP</td><td>Insumos médicos</td><td>Stock 45 días</td><td class="highlight">Disponible</td></tr>
-        <tr><td>MIDIS AQP</td><td>Víveres</td><td>80 ton.</td><td class="alert-text">Parcial (acceso limitado)</td></tr>
-        <tr><td>FFAA AQP</td><td>Combustible</td><td>200,000 gal.</td><td class="highlight">Disponible</td></tr>
-      </table>
-      <h3>EN TRÁNSITO (Lima → Arequipa)</h3>
-      <ul>
-        <li>2 aviones C-130 FAP: 40 ton. insumos (ETA 10:30)</li>
-        <li>1 buque BAP con hospital flotante (ETA: no aplica, ruta terrestre activa)</li>
-        <li>Convoy FFAA: 25 camiones, ETA 14:00</li>
-      </ul>
-    `
-  },
-  'comunicado1': {
-    class: 'PÚBLICO', title: 'Comunicado Oficial N° 1 — Gobierno del Perú',
-    meta: ['ORIGEN: PCM / Oficina de Comunicaciones', 'HORA: 07:30'],
-    html: `
-      <p>El Gobierno del Perú informa a la ciudadanía que a las 06:45 horas del día de hoy se registró un <span class="highlight">sismo de magnitud 7.8</span> con epicentro en la región Arequipa.</p>
-      <p>El señor Presidente de la República se encuentra en contacto permanente con el Consejo de Ministros y las autoridades regionales. El Centro de Operaciones de Emergencia Nacional (COEN) ha sido activado y coordina la respuesta del Estado.</p>
-      <p>Se han desplegado brigadas de búsqueda y rescate, equipos médicos y recursos humanitarios hacia la zona afectada. La Fuerza Aérea del Perú coordina el traslado aéreo de materiales y personal especializado.</p>
-      <p><span class="alert-text">El Estado declara el máximo nivel de alerta</span> y solicita a la ciudadanía mantener la calma, seguir únicamente los canales de comunicación oficiales y colaborar con las autoridades.</p>
-      <p>Se brindará información actualizada cada 30 minutos a través de los canales oficiales.</p>
-      <p style="margin-top:16px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim)">— PRESIDENCIA DEL CONSEJO DE MINISTROS — GOBIERNO DEL PERÚ —</p>
-    `
-  },
-  'protocolo': {
-    class: 'PÚBLICO', title: 'Protocolo SINAGERD — Nivel 3 (Emergencia Nacional)',
-    meta: ['ORIGEN: PCM / INDECI', 'VERSIÓN VIGENTE: 2023'],
-    html: `
-      <h3>DECLARATORIA DE EMERGENCIA NIVEL 3</h3>
-      <p>Corresponde a situaciones de desastre de gran magnitud que superan la capacidad de respuesta regional. Requiere la intervención directa del Gobierno Nacional.</p>
-      <h3>ACTIVACIONES AUTOMÁTICAS</h3>
-      <ul>
-        <li>COEN (Centro de Operaciones de Emergencia Nacional)</li>
-        <li>COE-Salud (MINSA)</li>
-        <li>COE-FFAA (Comando Conjunto)</li>
-        <li>Protocolo de Cooperación Internacional (INDECI/MRE)</li>
-      </ul>
-      <h3>COMPETENCIAS POR ROL</h3>
-      <table>
-        <tr><th>Actor</th><th>Responsabilidad</th></tr>
-        <tr><td>Presidente</td><td>Declaratoria Estado de Emergencia, conducción política</td></tr>
-        <tr><td>PCM</td><td>Coordinación intersectorial, vocería pública</td></tr>
-        <tr><td>INDECI</td><td>Dirección técnica operativa, despliegue SAR</td></tr>
-        <tr><td>FFAA</td><td>Apoyo logístico, seguridad, ingeniería de emergencia</td></tr>
-        <tr><td>MINSA</td><td>Atención médica, epidemiología, cadena de frío</td></tr>
-      </table>
-    `
-  }
-};
-
-function showDoc(docId) {
-  const doc = DOCS[docId];
-  if (!doc) return;
-
-  document.querySelectorAll('.doc-item').forEach(i => i.classList.remove('active'));
-  event && event.currentTarget && event.currentTarget.classList.add('active');
-
-  const viewer = document.getElementById('doc-viewer-content');
-  const classColor = doc.class === 'SECRETO' ? 'var(--accent-red)' : doc.class === 'CONFIDENCIAL' ? 'var(--accent-amber)' : 'var(--text-secondary)';
-
-  viewer.innerHTML = `
-    <div class="doc-viewer-header">
-      <div class="doc-classification" style="border-color:${classColor};color:${classColor}">${doc.class}</div>
-      <div class="doc-title">${doc.title}</div>
-      <div class="doc-meta-row">${doc.meta.map(m => `<span>${m}</span>`).join('')}</div>
-    </div>
-    <div class="doc-body">${doc.html}</div>
-  `;
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + tabId).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (tabId === 'sitrep') setTimeout(() => { if (map) map.invalidateSize(); }, 100);
 }
 
 // ════════════════════════════════════════
-// FACILITATOR — INJECT
+// CLOCK
 // ════════════════════════════════════════
-function injectEvent() {
-  const channel = document.getElementById('inject-channel').value;
-  const level   = document.getElementById('inject-level').value;
-  const title   = document.getElementById('inject-title').value.trim();
-  const body    = document.getElementById('inject-body').value.trim();
-  const sender  = document.getElementById('inject-sender').value.trim() || 'FACILITADOR';
-
-  if (!title) { showToast('ERROR', 'Debes escribir un título para el evento', 'red'); return; }
-
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  if (channel === 'timeline') {
-    const zone = document.getElementById('tl-inject-zone');
-    const item = document.createElement('div');
-    item.className = 'timeline-item';
-    item.style.animation = 'toast-in 0.4s ease';
-    item.innerHTML = `
-      <div class="tl-time">${time}</div>
-      <div class="tl-dot ${level}"></div>
-      <div class="tl-content">
-        <div class="tl-title">${title}</div>
-        <div class="tl-desc">${body}</div>
-      </div>
-    `;
-    zone.parentNode.insertBefore(item, zone);
-  }
-
-  if (channel === 'whatsapp') {
-    const feed = document.getElementById('wa-feed');
-    const msg = document.createElement('div');
-    msg.className = 'wa-msg incoming';
-    msg.style.borderLeft = `3px solid var(--accent-${level === 'red' ? 'red' : level === 'amber' ? 'amber' : 'cyan'})`;
-    msg.innerHTML = `
-      <div class="msg-sender">${sender}</div>
-      <div class="msg-text">${body || title}</div>
-      <div class="msg-time">${time}</div>
-    `;
-    feed.appendChild(msg);
-    feed.scrollTop = feed.scrollHeight;
-    document.getElementById('badge-comms').style.display = 'inline';
-  }
-
-  if (channel === 'twitter') {
-    const feed = document.getElementById('twitter-feed');
-    const tweet = document.createElement('div');
-    tweet.className = `tweet ${level === 'red' ? 'urgent' : ''}`;
-    tweet.style.animation = 'toast-in 0.4s ease';
-    tweet.innerHTML = `
-      <div class="tweet-header">
-        <div class="tweet-avatar" style="background:#2c3e50;color:#aaa">🎯</div>
-        <div class="tweet-meta">
-          <div class="tweet-name">${sender}</div>
-          <div class="tweet-handle">@evento_simulado</div>
-        </div>
-      </div>
-      <div class="tweet-text">${body || title} <span class="hashtag">#TerremotoArequipa</span></div>
-      <div class="tweet-footer"><span class="tweet-time">${time}</span></div>
-    `;
-    feed.insertBefore(tweet, feed.firstChild);
-    document.getElementById('badge-comms').style.display = 'inline';
-  }
-
-  if (channel === 'sms') {
-    const feed = document.getElementById('sms-feed');
-    const sms = document.createElement('div');
-    sms.className = 'sms-msg';
-    sms.style.borderLeftColor = level === 'red' ? 'var(--accent-red)' : 'var(--accent-amber)';
-    sms.innerHTML = `
-      <div class="sms-from">${sender.toUpperCase()}</div>
-      <div class="sms-text">${body || title}</div>
-      <div class="sms-meta"><span>${title}</span><span>${time}</span></div>
-    `;
-    feed.appendChild(sms);
-    feed.scrollTop = feed.scrollHeight;
-  }
-
-  if (channel === 'stats') {
-    // Bump random stat
-    const muertos = document.getElementById('stat-muertos');
-    const current = parseInt(muertos.textContent.replace(',',''));
-    muertos.textContent = (current + Math.floor(Math.random()*50+10)).toLocaleString();
-  }
-
-  // Add to inject log
-  const logEntry = document.createElement('div');
-  logEntry.className = 'log-entry';
-  logEntry.innerHTML = `<div class="log-time">${time}</div><div class="log-msg"><strong>FAC</strong> — Inyectado en <strong>${channel.toUpperCase()}</strong>: ${title}</div>`;
-  document.getElementById('inject-log').appendChild(logEntry);
-
-  // Clear form
-  document.getElementById('inject-title').value = '';
-  document.getElementById('inject-body').value = '';
-  document.getElementById('inject-sender').value = '';
-
-  showToast('EVENTO INYECTADO', `"${title}" → ${channel.toUpperCase()}`, 'amber');
+function startClock() {
+  stopClock();
+  clockInterval = setInterval(() => {
+    session.simSeconds++;
+    const h = Math.floor(session.simSeconds / 3600);
+    const m = Math.floor((session.simSeconds % 3600) / 60);
+    const s = session.simSeconds % 60;
+    const tEl = document.getElementById('sim-time');
+    if (tEl) tEl.textContent = `T+${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const dEl = document.getElementById('sim-date');
+    if (dEl) dEl.textContent = session.scenario.startDate;
+  }, 1000);
 }
 
-// ════════════════════════════════════════
-// PRESET EVENTS
-// ════════════════════════════════════════
-function triggerEvent(eventId) {
-  const events = {
-    replica: {
-      channel: 'timeline', level: 'red', title: 'Réplica 5.8 Mw registrada',
-      body: 'Segunda réplica significativa. Estructuras ya debilitadas en riesgo de colapso adicional. Suspender operaciones SAR en edificios dañados por 30 minutos.'
-    },
-    segundo_deslizamiento: {
-      channel: 'whatsapp', level: 'red', title: '⚠️ SEGUNDO DESLIZAMIENTO — Zona Alta Cono Norte',
-      body: 'Nuevo deslizamiento de mayor magnitud bloquea acceso principal. Brigada SAR-3 aislada. Necesitamos EXTRACCIÓN URGENTE. GPS: -16.391, -71.498'
-    },
-    colapso_presa: {
-      channel: 'sms', level: 'red', title: 'FALLA TOTAL — PRESA LA TOMILLA',
-      body: 'FALLA ESTRUCTURAL CONFIRMADA. Caudal liberado estimado 12M m³. Frente de agua alcanzará Sachaca en aprox. 35 minutos. EVACUACIÓN DE EMERGENCIA AHORA.'
-    },
-    mediainternacional: {
-      channel: 'twitter', level: 'amber', title: 'BBC pide declaración al Gobierno',
-      body: 'International media gathering outside Government Palace demanding statement. #Peru earthquake trending globally #1. Government silence creating international concern.'
-    },
-    ayuda_exterior: {
-      channel: 'timeline', level: 'green', title: 'Arribo ayuda internacional — OFDA/USAR',
-      body: 'Equipo USAR de Colombia (60 personas, 4 perros de búsqueda) aterriza en AQP. Cruz Roja Internacional activa protocolo. Fondos UNCERF: USD 5M aprobados.'
-    },
-    fin_rescate: {
-      channel: 'timeline', level: 'green', title: '📢 SEÑAL: Fin Fase Búsqueda y Rescate',
-      body: 'Facilitador indica transición a Fase de Recuperación. Los participantes deben preparar plan de reconstrucción y comunicación post-crisis.'
-    },
-    reset: null
-  };
-
-  if (eventId === 'reset') {
-    if (confirm('¿Reiniciar el escenario? Esto recargará la página.')) location.reload();
-    return;
-  }
-
-  const ev = events[eventId];
-  if (!ev) return;
-
-  document.getElementById('inject-channel').value = ev.channel;
-  document.getElementById('inject-level').value = ev.level;
-  document.getElementById('inject-title').value = ev.title;
-  document.getElementById('inject-body').value = ev.body;
-  document.getElementById('inject-sender').value = 'SISTEMA';
-
-  injectEvent();
+function stopClock() {
+  if (clockInterval) clearInterval(clockInterval);
+  clockInterval = null;
 }
 
 // ════════════════════════════════════════
@@ -2591,45 +2311,12 @@ function triggerEvent(eventId) {
 // ════════════════════════════════════════
 function showToast(title, msg, type='cyan') {
   const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type === 'red' ? 'red' : type === 'amber' ? 'amber' : ''}`;
-  toast.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${msg}</div>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 5200);
+  const t = document.createElement('div');
+  t.className = `toast ${type==='red'?'red':type==='amber'?'amber':''}`;
+  t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${msg}</div>`;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 5200);
 }
-
-// ════════════════════════════════════════
-// AUTO DEMO INJECT
-// ════════════════════════════════════════
-function autoInjectDemo() {
-  if (!currentRole) return;
-  showToast('NUEVO EVENTO', 'Réplica 4.3 Mw detectada — monitoreo activo', 'amber');
-
-  setTimeout(() => {
-    const feed = document.getElementById('wa-feed');
-    const msg = document.createElement('div');
-    msg.className = 'wa-msg incoming';
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    msg.innerHTML = `
-      <div class="msg-sender">Ing. VALDEZ / INDECI</div>
-      <div class="msg-text">Réplica 4.3 Mw. Sin daños adicionales confirmados. Mantenemos monitoreo Presa La Tomilla. DECISIÓN URGENTE: ¿Evacuamos sectores 5-7?</div>
-      <div class="msg-time">${time}</div>
-    `;
-    feed.appendChild(msg);
-    feed.scrollTop = feed.scrollHeight;
-    document.getElementById('badge-comms').style.display = 'inline';
-  }, 2000);
-
-  setTimeout(() => autoInjectDemo(), 45000);
-}
-
-// ════════════════════════════════════════
-// INIT DOC ON LOAD
-// ════════════════════════════════════════
-window.addEventListener('load', () => {
-  showDoc('sitrep-inicial');
-});
 </script>
 </body>
 </html>
