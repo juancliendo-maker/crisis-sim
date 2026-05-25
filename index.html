@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRISIS SIM v2.0 // PLATAFORMA DE SIMULACIÓN ACADÉMICA</title>
+<title>CRISIS SIM v3.0 // PLATAFORMA MULTIUSUARIO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg-deep: #1c2333;
@@ -31,9 +32,7 @@
   --glow-cyan: 0 0 14px rgba(56,189,248,0.35);
   --glow-amber: 0 0 14px rgba(251,191,36,0.35);
 }
-
 * { margin:0; padding:0; box-sizing:border-box; }
-
 body {
   background: linear-gradient(160deg, #1a2540 0%, #1c2d48 40%, #1e2a3e 100%);
   color: var(--text-primary);
@@ -42,7 +41,6 @@ body {
   overflow: hidden;
   height: 100vh;
 }
-
 body::before {
   content: '';
   position: fixed; inset: 0;
@@ -50,6 +48,35 @@ body::before {
   pointer-events: none;
   z-index: 9999;
 }
+
+/* CONNECTION STATUS BADGE */
+.conn-status {
+  position: fixed;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 4px 10px;
+  background: rgba(28,35,51,0.95);
+  border: 1px solid var(--border-bright);
+  color: var(--text-secondary);
+  pointer-events: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.conn-status .conn-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-amber);
+  animation: pulse-conn 1.5s ease-in-out infinite;
+}
+.conn-status.connected .conn-dot {
+  background: var(--accent-green);
+  animation: none;
+  box-shadow: 0 0 6px var(--accent-green);
+}
+.conn-status.error .conn-dot { background: var(--accent-red); animation: none; }
+@keyframes pulse-conn { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
 /* LANDING */
 #landing-screen {
@@ -60,10 +87,8 @@ body::before {
     radial-gradient(circle at 1px 1px, rgba(56,189,248,0.07) 1px, transparent 0);
   background-size: 100% 100%, 28px 28px;
   display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-  flex-direction: column;
+  z-index: 1000; flex-direction: column;
 }
-
 .landing-header { text-align: center; margin-bottom: 36px; }
 .landing-header .sys-label {
   font-family: var(--font-mono); font-size: 11px;
@@ -81,14 +106,12 @@ body::before {
 }
 .landing-header .version {
   font-family: var(--font-mono); font-size: 10px;
-  color: var(--accent-amber); margin-top: 8px; letter-spacing: 2px;
+  color: var(--accent-green); margin-top: 8px; letter-spacing: 2px;
 }
-
 .entry-cards {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 16px; max-width: 720px;
 }
-
 .entry-card {
   background: rgba(35,45,64,0.92);
   border: 1px solid var(--border-bright);
@@ -99,7 +122,6 @@ body::before {
 .entry-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
 .entry-card.director { border-top: 3px solid var(--accent-amber); }
 .entry-card.participant { border-top: 3px solid var(--accent-cyan); }
-
 .entry-card .ec-icon { font-size: 32px; margin-bottom: 12px; }
 .entry-card .ec-code {
   font-family: var(--font-mono); font-size: 10px;
@@ -122,9 +144,7 @@ body::before {
   background: linear-gradient(145deg, #141e30 0%, #1c2d48 50%, #162038 100%);
   z-index: 999; overflow-y: auto; padding: 40px 20px;
 }
-
 .setup-container { max-width: 900px; margin: 0 auto; }
-
 .setup-header {
   margin-bottom: 28px;
   display: flex; align-items: center; justify-content: space-between;
@@ -134,7 +154,6 @@ body::before {
   font-weight: 900; letter-spacing: 3px;
 }
 .setup-header h2 span { color: var(--accent-amber); }
-
 .back-btn {
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: 2px; padding: 6px 12px;
@@ -142,7 +161,6 @@ body::before {
   color: var(--text-secondary); cursor: pointer;
 }
 .back-btn:hover { color: var(--text-primary); border-color: var(--border-bright); }
-
 .setup-step {
   background: rgba(35,45,64,0.85);
   border: 1px solid var(--border);
@@ -157,7 +175,6 @@ body::before {
   font-family: var(--font-mono); font-size: 10px;
   font-weight: 700; letter-spacing: 2px; padding: 3px 10px;
 }
-
 .setup-step h3 {
   font-family: var(--font-cond); font-size: 18px;
   font-weight: 700; letter-spacing: 2px; margin-bottom: 6px;
@@ -165,7 +182,6 @@ body::before {
 .setup-step .step-desc {
   font-size: 12px; color: var(--text-secondary); margin-bottom: 18px;
 }
-
 .scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .scenario-card {
   background: var(--bg-card); border: 1px solid var(--border);
@@ -183,7 +199,6 @@ body::before {
   font-family: var(--font-mono); font-size: 9px;
   color: var(--accent-amber); margin-top: 8px; letter-spacing: 1px;
 }
-
 .role-builder { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .role-row {
   background: var(--bg-card); border: 1px solid var(--border);
@@ -201,7 +216,6 @@ body::before {
   font-family: var(--font-body); font-size: 13px; outline: none;
 }
 .role-row input[type="text"]:focus { border-color: var(--accent-amber); }
-
 .tag-selector { display: flex; flex-wrap: wrap; gap: 4px; }
 .tag-chip {
   font-family: var(--font-mono); font-size: 9px;
@@ -215,14 +229,12 @@ body::before {
   border-color: var(--accent-cyan);
   color: var(--accent-cyan);
 }
-
 .role-row .remove-role {
   background: transparent; border: 1px solid var(--border);
   color: var(--text-dim); width: 26px; height: 26px;
   cursor: pointer; font-size: 14px;
 }
 .role-row .remove-role:hover { color: var(--accent-red); border-color: var(--accent-red); }
-
 .add-role-btn {
   background: transparent; border: 1px dashed var(--border-bright);
   color: var(--text-secondary); padding: 10px;
@@ -230,7 +242,6 @@ body::before {
   font-weight: 600; letter-spacing: 2px; cursor: pointer; width: 100%;
 }
 .add-role-btn:hover { color: var(--accent-amber); border-color: var(--accent-amber); }
-
 .preset-btns { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .preset-btn {
   font-family: var(--font-mono); font-size: 9px;
@@ -239,7 +250,6 @@ body::before {
   color: var(--text-secondary); cursor: pointer;
 }
 .preset-btn:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
-
 .launch-btn {
   width: 100%; background: var(--accent-amber); color: var(--bg-deep);
   border: none; padding: 16px;
@@ -248,7 +258,7 @@ body::before {
   margin-top: 8px;
 }
 .launch-btn:hover { background: #ffc94a; box-shadow: var(--glow-amber); }
-
+.launch-btn:disabled { opacity: 0.4; cursor: wait; }
 .session-code-display {
   background: var(--bg-deep); border: 1px solid var(--accent-cyan);
   padding: 16px; text-align: center; margin-top: 12px;
@@ -261,18 +271,19 @@ body::before {
   font-family: var(--font-mono); font-size: 28px;
   color: var(--accent-cyan); letter-spacing: 8px; font-weight: 700;
 }
+.session-code-display .sc-hint {
+  font-size: 11px; color: var(--text-secondary); margin-top: 8px;
+}
 
 /* PARTICIPANT LOGIN */
 #participant-login {
   display: none;
   position: fixed; inset: 0;
   background: linear-gradient(145deg, #141e30 0%, #1c2d48 50%, #162038 100%);
-  z-index: 999;
-  align-items: center; justify-content: center;
+  z-index: 999; align-items: center; justify-content: center;
   flex-direction: column; padding: 20px;
 }
 #participant-login.show { display: flex; }
-
 .plogin-box {
   background: rgba(35,45,64,0.92);
   border: 1px solid var(--border-bright);
@@ -280,7 +291,6 @@ body::before {
   padding: 32px; max-width: 540px; width: 100%;
   backdrop-filter: blur(8px);
 }
-
 .plogin-box h2 {
   font-family: var(--font-cond); font-size: 22px;
   font-weight: 700; letter-spacing: 2px; margin-bottom: 6px;
@@ -288,7 +298,6 @@ body::before {
 .plogin-box .plogin-desc {
   font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;
 }
-
 .session-input {
   width: 100%; background: var(--bg-deep);
   border: 1px solid var(--border); color: var(--accent-cyan);
@@ -297,13 +306,11 @@ body::before {
   outline: none; text-transform: uppercase; margin-bottom: 16px;
 }
 .session-input:focus { border-color: var(--accent-cyan); }
-
 .plogin-roles {
   display: none; flex-direction: column; gap: 6px;
   margin-bottom: 16px; max-height: 50vh; overflow-y: auto;
 }
 .plogin-roles.show { display: flex; }
-
 .plogin-role-btn {
   background: var(--bg-card); border: 1px solid var(--border);
   padding: 12px 16px; cursor: pointer;
@@ -311,7 +318,7 @@ body::before {
 }
 .plogin-role-btn:hover { border-color: var(--accent-cyan); background: var(--bg-hover); }
 .plogin-role-btn.selected { border-color: var(--accent-cyan); background: rgba(56,189,248,0.08); }
-
+.plogin-role-btn.taken { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 .plogin-role-btn .pr-num {
   font-family: var(--font-mono); font-size: 10px;
   color: var(--accent-cyan); width: 50px;
@@ -324,7 +331,7 @@ body::before {
   font-family: var(--font-mono); font-size: 9px;
   letter-spacing: 1px; color: var(--accent-green);
 }
-
+.plogin-role-btn.taken .pr-status { color: var(--accent-red); }
 .btn-primary {
   width: 100%; background: var(--accent-cyan); color: var(--bg-deep);
   border: none; padding: 14px;
@@ -332,11 +339,11 @@ body::before {
   font-weight: 700; letter-spacing: 4px; cursor: pointer;
 }
 .btn-primary:hover { background: #58cdf8; }
+.btn-primary:disabled { opacity: 0.4; cursor: wait; }
 
 /* MAIN APP */
 #app { display: none; height: 100vh; flex-direction: column; }
 #app.show { display: flex; }
-
 .topbar {
   height: 48px;
   background: linear-gradient(90deg, #1e2d44 0%, #243250 100%);
@@ -345,15 +352,12 @@ body::before {
   padding: 0 16px; gap: 16px; flex-shrink: 0;
   box-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
-
 .topbar-logo {
   font-family: var(--font-cond); font-size: 18px;
   font-weight: 900; letter-spacing: 2px;
 }
 .topbar-logo span { color: var(--accent-cyan); }
-
 .topbar-sep { width: 1px; height: 24px; background: var(--border); }
-
 .scenario-badge {
   font-family: var(--font-mono); font-size: 10px;
   color: var(--accent-amber); letter-spacing: 1px;
@@ -361,7 +365,6 @@ body::before {
   border: 1px solid rgba(251,191,36,0.3);
   background: rgba(251,191,36,0.05);
 }
-
 .role-badge {
   font-family: var(--font-cond); font-size: 13px;
   font-weight: 600; letter-spacing: 1px; padding: 3px 10px;
@@ -369,15 +372,12 @@ body::before {
   background: var(--bg-card); color: var(--accent-cyan);
 }
 .role-badge.director { color: var(--accent-amber); border-color: var(--accent-amber); }
-
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-
 .sim-clock { font-family: var(--font-mono); font-size: 14px; letter-spacing: 2px; }
 .sim-clock .sim-date {
   font-size: 10px; color: var(--text-secondary);
   display: block; text-align: right;
 }
-
 .alert-level {
   font-family: var(--font-cond); font-size: 12px;
   font-weight: 700; letter-spacing: 3px; padding: 4px 12px;
@@ -389,7 +389,6 @@ body::before {
   0%,100% { border-color: var(--accent-red); }
   50% { border-color: rgba(248,113,113,0.4); }
 }
-
 .exit-btn {
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: 2px; padding: 4px 10px;
@@ -397,7 +396,6 @@ body::before {
   color: var(--text-secondary); cursor: pointer;
 }
 .exit-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
-
 .role-tags { display: flex; gap: 4px; flex-wrap: wrap; max-width: 280px; }
 .role-tag-mini {
   font-family: var(--font-mono); font-size: 8px;
@@ -406,7 +404,6 @@ body::before {
   border: 1px solid rgba(56,189,248,0.3);
   color: var(--accent-cyan);
 }
-
 .nav-tabs {
   height: 38px;
   background: linear-gradient(90deg, #1e2d44 0%, #243250 100%);
@@ -414,7 +411,6 @@ body::before {
   display: flex; align-items: flex-end;
   padding: 0 16px; gap: 4px; flex-shrink: 0;
 }
-
 .nav-tab {
   font-family: var(--font-cond); font-size: 12px;
   font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
@@ -429,7 +425,13 @@ body::before {
   border-bottom: 2px solid var(--bg-card);
   margin-bottom: -1px;
 }
-
+.nav-tab .tab-badge {
+  display: inline-block; background: var(--accent-red); color: white;
+  font-size: 9px; padding: 1px 4px; border-radius: 2px;
+  margin-left: 5px; font-family: var(--font-mono);
+  animation: pulse-bg 1.5s ease-in-out infinite;
+}
+@keyframes pulse-bg { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
 .locked-notice {
   background: var(--bg-card); border: 1px solid var(--border);
   padding: 24px 28px; margin: 24px; text-align: center;
@@ -448,12 +450,10 @@ body::before {
   font-family: var(--font-mono); font-size: 10px;
   color: var(--accent-amber); margin-top: 12px; letter-spacing: 2px;
 }
-
 .main-content { flex: 1; overflow: hidden; display: flex; }
 .tab-view { display: none; width: 100%; height: 100%; }
 .tab-view.active { display: flex; }
 
-/* SITREP */
 #view-sitrep { display: none; }
 #view-sitrep.active { display: grid; grid-template-columns: 260px 1fr 280px; overflow: hidden; }
 .sitrep-left, .sitrep-right {
@@ -462,13 +462,11 @@ body::before {
 }
 .sitrep-left { border-right: 1px solid var(--border); }
 .sitrep-right { border-left: 1px solid var(--border); }
-
 .panel-section { border-bottom: 1px solid var(--border); padding: 12px; }
 .panel-section-title {
   font-family: var(--font-mono); font-size: 9px;
   color: var(--text-dim); letter-spacing: 3px; margin-bottom: 10px;
 }
-
 .incident-item {
   padding: 8px 10px; border: 1px solid var(--border);
   background: var(--bg-card); margin-bottom: 6px;
@@ -493,7 +491,6 @@ body::before {
   font-size: 10px; color: var(--text-secondary);
   margin-top: 3px; display: flex; justify-content: space-between;
 }
-
 .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
 .stat-box {
   background: var(--bg-card); border: 1px solid var(--border);
@@ -510,10 +507,8 @@ body::before {
   font-family: var(--font-cond); font-size: 11px;
   color: var(--text-secondary); letter-spacing: 1px; margin-top: 2px;
 }
-
 .map-container { position: relative; overflow: hidden; }
 #crisis-map { width: 100%; height: 100%; }
-
 .timeline-item {
   padding: 8px 12px; border-bottom: 1px solid var(--border);
   display: flex; gap: 10px; position: relative;
@@ -545,20 +540,17 @@ body::before {
   margin-top: 2px; line-height: 1.4;
 }
 
-/* COMMS */
 #view-comms { display: none; }
 #view-comms.active { display: grid; overflow: hidden; }
 #view-comms.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
 #view-comms.cols-2 { grid-template-columns: 1fr 1fr; }
 #view-comms.cols-1 { grid-template-columns: 1fr; }
-
 .comm-panel {
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
   height: 100%; overflow: hidden;
 }
 .comm-panel:last-child { border-right: none; }
-
 .comm-header {
   padding: 10px 14px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
@@ -582,12 +574,10 @@ body::before {
   margin-left: auto; font-family: var(--font-mono);
   font-size: 10px; color: var(--text-secondary);
 }
-
 .messages-feed {
   flex: 1; overflow-y: auto; padding: 10px;
   display: flex; flex-direction: column; gap: 6px;
 }
-
 .wa-msg {
   max-width: 85%; padding: 7px 10px; border-radius: 2px;
   font-size: 12px; line-height: 1.4;
@@ -617,7 +607,9 @@ body::before {
   font-family: var(--font-mono); font-size: 9px;
   color: var(--text-dim); letter-spacing: 1px; padding: 3px 10px;
 }
-
+.wa-msg.injected {
+  border-left: 3px solid var(--accent-amber);
+}
 .tweet {
   background: var(--bg-card); border: 1px solid var(--border);
   padding: 10px 12px;
@@ -626,6 +618,7 @@ body::before {
   border-left: 3px solid var(--accent-red);
   background: rgba(248,113,113,0.05);
 }
+.tweet.injected { border-left: 3px solid var(--accent-amber); }
 .tweet-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .tweet-avatar {
   width: 30px; height: 30px; border-radius: 50%;
@@ -649,11 +642,11 @@ body::before {
   margin-left: auto; font-family: var(--font-mono);
   font-size: 9px; color: var(--text-dim);
 }
-
 .sms-msg {
   background: var(--bg-card); border: 1px solid var(--border);
   padding: 10px 12px; border-left: 3px solid var(--accent-purple);
 }
+.sms-msg.injected { border-left-color: var(--accent-amber); }
 .sms-from {
   font-family: var(--font-mono); font-size: 9px;
   color: var(--accent-purple); letter-spacing: 2px; margin-bottom: 4px;
@@ -663,7 +656,6 @@ body::before {
   display: flex; justify-content: space-between; margin-top: 5px;
   font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary);
 }
-
 .comm-input-area {
   padding: 10px; border-top: 1px solid var(--border);
   display: flex; gap: 8px; flex-shrink: 0;
@@ -679,7 +671,6 @@ body::before {
   font-weight: 700; letter-spacing: 2px; cursor: pointer;
 }
 
-/* DOCS */
 #view-docs { display: none; }
 #view-docs.active { display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
 .docs-sidebar {
@@ -717,7 +708,6 @@ body::before {
 .doc-class.secret { color: var(--accent-red); border-color: var(--accent-red); }
 .doc-class.conf { color: var(--accent-amber); border-color: var(--accent-amber); }
 .doc-class.pub { color: var(--text-secondary); border-color: var(--border); }
-
 .doc-viewer { padding: 24px; overflow-y: auto; }
 .doc-viewer-header {
   margin-bottom: 20px; padding-bottom: 16px;
@@ -761,7 +751,6 @@ body::before {
 }
 .doc-body td:first-child { color: var(--text-primary); }
 
-/* DIRECTOR PANEL */
 #view-director { display: none; }
 #view-director.active { display: grid; grid-template-columns: 1fr 1fr 320px; overflow: hidden; }
 .facil-panel {
@@ -779,7 +768,6 @@ body::before {
 }
 .facil-panel-subtitle { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 .facil-content { flex: 1; overflow-y: auto; padding: 12px; }
-
 .inject-form { display: flex; flex-direction: column; gap: 10px; }
 .form-group label {
   display: block; font-family: var(--font-mono);
@@ -794,12 +782,10 @@ body::before {
 }
 .form-select:focus, .form-input:focus, .form-textarea:focus { border-color: var(--accent-amber); }
 .form-textarea { resize: none; height: 72px; }
-
 .tag-targeting {
   display: flex; flex-wrap: wrap; gap: 4px;
   padding: 8px; background: var(--bg-card); border: 1px solid var(--border);
 }
-
 .inject-btn {
   padding: 10px; background: rgba(251,191,36,0.15);
   border: 1px solid var(--accent-amber); color: var(--accent-amber);
@@ -807,7 +793,6 @@ body::before {
   font-weight: 700; letter-spacing: 3px; cursor: pointer;
 }
 .inject-btn:hover { background: rgba(251,191,36,0.25); }
-
 .control-btn {
   padding: 10px 16px; border: 1px solid var(--border);
   background: var(--bg-card); color: var(--text-secondary);
@@ -819,7 +804,6 @@ body::before {
 }
 .control-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-bright); }
 .control-btn.danger:hover { border-color: var(--accent-red); color: var(--accent-red); }
-
 .role-status-grid { display: flex; flex-direction: column; gap: 6px; }
 .role-status-item {
   background: var(--bg-card); border: 1px solid var(--border);
@@ -837,8 +821,7 @@ body::before {
   font-family: var(--font-mono); font-size: 9px;
   color: var(--text-secondary); text-align: right;
 }
-
-.inject-log { display: flex; flex-direction: column; gap: 6px; }
+.inject-log { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
 .log-entry {
   padding: 6px 10px; border: 1px solid var(--border);
   background: var(--bg-card); font-size: 11px;
@@ -851,7 +834,6 @@ body::before {
 .log-entry .log-msg { color: var(--text-secondary); }
 .log-entry .log-msg strong { color: var(--text-primary); }
 
-/* TOAST */
 .toast-container {
   position: fixed; top: 60px; right: 16px; z-index: 999;
   display: flex; flex-direction: column; gap: 6px;
@@ -867,6 +849,7 @@ body::before {
 }
 .toast.red { border-left-color: var(--accent-red); }
 .toast.amber { border-left-color: var(--accent-amber); }
+.toast.green { border-left-color: var(--accent-green); }
 @keyframes toast-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes toast-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
 .toast-title { font-family: var(--font-cond); font-size: 13px; font-weight: 700; letter-spacing: 1px; }
@@ -893,28 +876,31 @@ body::before {
 </head>
 <body>
 
+<div class="conn-status" id="conn-status">
+  <div class="conn-dot"></div>
+  <span id="conn-text">CONECTANDO A SUPABASE...</span>
+</div>
+
 <!-- LANDING -->
 <div id="landing-screen">
   <div class="landing-header">
     <div class="sys-label">PLATAFORMA DE SIMULACIÓN ACADÉMICA</div>
     <h1>CRISIS<span>SIM</span></h1>
     <div class="subtitle">GESTIÓN DE CRISIS · RIESGO POLÍTICO · DESASTRES</div>
-    <div class="version">v2.0 · ROLES CONFIGURABLES · ACCESS TAGS</div>
+    <div class="version">v3.0 · MULTIUSUARIO REALTIME · SUPABASE</div>
   </div>
-
   <div class="entry-cards">
     <button class="entry-card director" onclick="goToDirectorSetup()">
       <div class="ec-icon">🎯</div>
       <div class="ec-code">PERFIL DIRECTOR</div>
       <div class="ec-title">CONFIGURAR EJERCICIO</div>
-      <div class="ec-desc">Selecciona escenario, define roles personalizados y asigna permisos por etiquetas. Obtienes código de sesión para participantes.</div>
+      <div class="ec-desc">Selecciona escenario, define roles personalizados y asigna permisos. Recibe código de sesión multiusuario.</div>
     </button>
-
     <button class="entry-card participant" onclick="goToParticipantLogin()">
       <div class="ec-icon">👤</div>
       <div class="ec-code">PERFIL PARTICIPANTE</div>
       <div class="ec-title">INGRESAR A SESIÓN</div>
-      <div class="ec-desc">Requiere código de sesión proporcionado por el Director. Selecciona tu rol dentro del ejercicio.</div>
+      <div class="ec-desc">Ingresa el código de sesión y selecciona tu rol. Comunicación sincronizada en tiempo real.</div>
     </button>
   </div>
 </div>
@@ -926,36 +912,30 @@ body::before {
       <h2>CONFIGURAR <span>EJERCICIO</span></h2>
       <button class="back-btn" onclick="backToLanding()">← VOLVER</button>
     </div>
-
     <div class="setup-step" data-step="PASO 1">
       <h3>SELECCIONAR ESCENARIO</h3>
       <div class="step-desc">Elige la crisis base sobre la cual se ejecutará el ejercicio.</div>
       <div class="scenario-grid" id="scenario-grid"></div>
     </div>
-
     <div class="setup-step" data-step="PASO 2">
       <h3>CONFIGURAR ROLES (1 a 10)</h3>
-      <div class="step-desc">Define los roles del ejercicio. Las etiquetas determinan qué información ve cada rol.</div>
-
+      <div class="step-desc">Define los roles del ejercicio. Cada rol verá información filtrada según sus etiquetas (lógica OR: con tener una tag basta para ver el contenido).</div>
       <div class="preset-btns">
         <button class="preset-btn" onclick="loadRolePreset('full')">▼ Plantilla completa (10)</button>
         <button class="preset-btn" onclick="loadRolePreset('minimal')">▼ Plantilla mínima (4)</button>
         <button class="preset-btn" onclick="loadRolePreset('clear')">↺ Limpiar</button>
       </div>
-
       <div class="role-builder" id="role-builder"></div>
       <button class="add-role-btn" onclick="addRole()">+ AGREGAR ROL</button>
     </div>
-
     <div class="setup-step" data-step="PASO 3">
-      <h3>INICIAR SESIÓN</h3>
-      <div class="step-desc">Al iniciar, recibirás un código de sesión para compartir con los participantes.</div>
-
-      <button class="launch-btn" onclick="launchSession()">⬡ INICIAR EJERCICIO</button>
-
+      <h3>INICIAR SESIÓN MULTIUSUARIO</h3>
+      <div class="step-desc">Al iniciar, recibirás un código que los participantes deben ingresar desde sus dispositivos.</div>
+      <button class="launch-btn" id="launch-btn" onclick="launchSession()">⬡ INICIAR EJERCICIO</button>
       <div class="session-code-display" id="session-code-display" style="display:none">
         <div class="sc-label">CÓDIGO DE SESIÓN — COMPARTIR CON PARTICIPANTES</div>
         <div class="sc-code" id="session-code-value">—</div>
+        <div class="sc-hint">Los participantes deben ingresar este código en sus dispositivos</div>
       </div>
     </div>
   </div>
@@ -966,13 +946,10 @@ body::before {
   <div class="plogin-box">
     <h2>INGRESO PARTICIPANTE</h2>
     <div class="plogin-desc">Ingresa el código de sesión proporcionado por el Director.</div>
-
     <input class="session-input" id="session-code-input" type="text" placeholder="ABC-1234" maxlength="8">
     <button class="btn-primary" id="join-session-btn" onclick="joinSession()">VALIDAR CÓDIGO</button>
-
     <div class="plogin-roles" id="plogin-roles"></div>
     <button class="btn-primary" id="enter-session-btn" onclick="enterAsParticipant()" style="display:none">INGRESAR AL EJERCICIO</button>
-
     <button class="back-btn" onclick="backToLanding()" style="margin-top:14px; width:100%; padding:8px;">← VOLVER AL INICIO</button>
   </div>
 </div>
@@ -996,37 +973,56 @@ body::before {
       <button class="exit-btn" onclick="exitToLanding()">✕ SALIR</button>
     </div>
   </div>
-
   <div class="nav-tabs">
     <button class="nav-tab active" data-tab="sitrep" onclick="switchTab('sitrep',this)">SITUACIÓN</button>
     <button class="nav-tab" data-tab="comms" onclick="switchTab('comms',this)">COMUNICACIONES</button>
     <button class="nav-tab" data-tab="docs" onclick="switchTab('docs',this)">DOCUMENTOS</button>
     <button class="nav-tab director-only" data-tab="director" onclick="switchTab('director',this)" style="display:none">⬡ CONTROL DIRECTOR</button>
   </div>
-
   <div class="main-content">
     <div id="view-sitrep" class="tab-view active">
       <div class="sitrep-left" id="sitrep-left"></div>
-      <div class="map-container">
-        <div id="crisis-map"></div>
-      </div>
+      <div class="map-container"><div id="crisis-map"></div></div>
       <div class="sitrep-right" id="sitrep-right"></div>
     </div>
-
     <div id="view-comms" class="tab-view"></div>
-
     <div id="view-docs" class="tab-view">
       <div class="docs-sidebar" id="docs-sidebar"></div>
       <div class="doc-viewer" id="doc-viewer-content"></div>
     </div>
-
     <div id="view-director" class="tab-view"></div>
   </div>
 </div>
 
 <script>
 // ════════════════════════════════════════
-// ACCESS TAGS — 11 universales
+// SUPABASE CONFIG
+// ════════════════════════════════════════
+const SUPABASE_URL = 'https://nuqteugvwhtrhyxjaxej.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5mvrdWx44xGRkbyoC00ulw_q8iSfECT';
+
+let supabase = null;
+
+function initSupabase() {
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    setConnStatus('connected', 'CONECTADO');
+    return true;
+  } catch (e) {
+    console.error('Supabase init error:', e);
+    setConnStatus('error', 'ERROR DE CONEXIÓN');
+    return false;
+  }
+}
+
+function setConnStatus(state, text) {
+  const el = document.getElementById('conn-status');
+  el.className = 'conn-status ' + state;
+  document.getElementById('conn-text').textContent = text;
+}
+
+// ════════════════════════════════════════
+// ACCESS TAGS
 // ════════════════════════════════════════
 const ACCESS_TAGS = {
   'POLITICA':     { label: '🎯 Decisión Política' },
@@ -1043,320 +1039,133 @@ const ACCESS_TAGS = {
 };
 
 // ════════════════════════════════════════
-// SCENARIOS
+// SCENARIOS (con lógica OR de tags)
 // ════════════════════════════════════════
 const SCENARIOS = {
   'vacancia': {
-    id: 'vacancia',
-    icon: '🏛',
-    title: 'Crisis Política — Vacancia Presidencial',
-    desc: 'Tensión Ejecutivo vs Congreso. Moción de vacancia con 87 firmas. Fractura del gabinete y presión internacional.',
-    primaryTags: ['POLITICA', 'COMUNICACION', 'INTELIGENCIA', 'JUDICIAL'],
-    alertLevel: 'ALERTA POLÍTICA',
-    startDate: '12 MAR 2026 · 14:00 hrs',
-    startSeconds: 7200,
-    mapCenter: [-12.046, -77.043],
-    mapZoom: 13,
-    stats: [
-      { label: 'FIRMAS VACANCIA', val: '87', color: 'red' },
-      { label: 'VOTOS NECESARIOS', val: '87', color: 'amber' },
-      { label: 'MINISTROS RENUNCIADOS', val: '4', color: 'red' },
-      { label: 'PROTESTAS ACTIVAS', val: '12', color: 'amber' }
+    id:'vacancia', icon:'🏛',
+    title:'Crisis Política — Vacancia Presidencial',
+    desc:'Tensión Ejecutivo vs Congreso. 87 firmas, fractura del gabinete, presión internacional.',
+    primaryTags:['POLITICA','COMUNICACION','INTELIGENCIA','JUDICIAL'],
+    alertLevel:'ALERTA POLÍTICA',
+    startDate:'12 MAR 2026 · 14:00 hrs',
+    startSeconds:7200,
+    mapCenter:[-12.046,-77.043], mapZoom:13,
+    stats:[
+      {label:'FIRMAS VACANCIA',val:'87',color:'red'},
+      {label:'VOTOS NECESARIOS',val:'87',color:'amber'},
+      {label:'MINISTROS RENUNCIADOS',val:'4',color:'red'},
+      {label:'PROTESTAS ACTIVAS',val:'12',color:'amber'}
     ],
-    incidents: [
-      { lat:-12.046, lng:-77.043, type:'critical', tagType:'POLITICA',
-        title:'Plaza Bolívar — Congreso convocado', meta:'Congreso · T+00:00',
-        label:'🔴 Congreso en sesión extraordinaria' },
-      { lat:-12.054, lng:-77.030, type:'critical', tagType:'POLITICA',
-        title:'Palacio — Gabinete reunido', meta:'Palacio · T+00:30',
-        label:'🔴 Gabinete en sesión permanente' },
-      { lat:-12.062, lng:-77.036, type:'warning', tagType:'INTERIOR',
-        title:'Marcha Av. Abancay — 8K personas', meta:'Centro Lima · T+01:15',
-        label:'🟡 Movilización ciudadana' },
-      { lat:-12.116, lng:-77.029, type:'warning', tagType:'INTERIOR',
-        title:'Concentración Campo de Marte', meta:'Jesús María · T+01:40',
-        label:'🟡 Marcha pro-vacancia' },
-      { lat:-12.046, lng:-77.067, type:'info', tagType:'COMUNICACION',
-        title:'Acreditación prensa internacional', meta:'San Isidro · T+00:45',
-        label:'ℹ Prensa internacional' }
+    incidents:[
+      {lat:-12.046,lng:-77.043,type:'critical',tagType:'POLITICA',title:'Congreso convocado',meta:'Plaza Bolívar · T+00:00',label:'🔴 Congreso en sesión extraordinaria'},
+      {lat:-12.054,lng:-77.030,type:'critical',tagType:'POLITICA',title:'Palacio — Gabinete reunido',meta:'Palacio · T+00:30',label:'🔴 Gabinete en sesión permanente'},
+      {lat:-12.062,lng:-77.036,type:'warning',tagType:'INTERIOR',title:'Marcha Av. Abancay — 8K',meta:'Centro Lima · T+01:15',label:'🟡 Movilización ciudadana'},
+      {lat:-12.116,lng:-77.029,type:'warning',tagType:'INTERIOR',title:'Concentración Campo Marte',meta:'Jesús María · T+01:40',label:'🟡 Marcha pro-vacancia'},
+      {lat:-12.046,lng:-77.067,type:'info',tagType:'COMUNICACION',title:'Acreditación prensa internacional',meta:'San Isidro · T+00:45',label:'ℹ Prensa internacional'}
     ],
-    timeline: [
-      { time:'12:00', dot:'amber', tagType:'POLITICA', title:'Presentación moción de vacancia',
-        desc:'Bancada opositora presenta moción con 32 firmas iniciales.' },
-      { time:'12:45', dot:'red', tagType:'POLITICA', title:'Moción alcanza 87 firmas',
-        desc:'Se alcanzan las firmas necesarias. Debate programado para hoy 18:00.' },
-      { time:'13:10', dot:'red', tagType:'POLITICA', title:'Renuncia Ministro de Justicia',
-        desc:'Cita "irreconciliables diferencias".' },
-      { time:'13:35', dot:'red', tagType:'POLITICA', title:'Renuncia Ministra de la Mujer',
-        desc:'Segunda renuncia en una hora. Pérdida de respaldo político.' },
-      { time:'13:50', dot:'amber', tagType:'INTERIOR', title:'Convocatoria a marchas',
-        desc:'Colectivos ciudadanos convocan plazas de Lima, Arequipa, Cusco y Trujillo.' },
-      { time:'14:00', dot:'red', tagType:'POLITICA', title:'Presidente solicita pronunciamiento FFAA',
-        desc:'Solicita "respaldo institucional" del Comando Conjunto en reunión privada.' }
+    timeline:[
+      {time:'12:00',dot:'amber',tagType:'POLITICA',title:'Presentación moción de vacancia',desc:'Bancada opositora presenta moción con 32 firmas iniciales.'},
+      {time:'12:45',dot:'red',tagType:'POLITICA',title:'Moción alcanza 87 firmas',desc:'Debate programado para hoy 18:00.'},
+      {time:'13:10',dot:'red',tagType:'POLITICA',title:'Renuncia Ministro de Justicia',desc:'Cita "irreconciliables diferencias".'},
+      {time:'13:35',dot:'red',tagType:'POLITICA',title:'Renuncia Ministra de la Mujer',desc:'Segunda renuncia en una hora.'},
+      {time:'13:50',dot:'amber',tagType:'INTERIOR',title:'Convocatoria a marchas',desc:'Plazas de Lima, Arequipa, Cusco y Trujillo.'},
+      {time:'14:00',dot:'red',tagType:'POLITICA',title:'Solicita pronunciamiento FFAA',desc:'Presidente solicita respaldo del Comando Conjunto.'}
     ],
-    twitter: [
-      { name:'El Comercio', handle:'@elcomercio_peru', avatar:'EC', avatarBg:'#c0392b',
-        text:'🔴 ÚLTIMA HORA: Moción de vacancia alcanza 87 firmas en el Congreso. Debate programado 18:00. <span class="hashtag">#VacanciaYa</span>',
-        time:'12:48', urgent:true, requiresTags:[] },
-      { name:'Caretas', handle:'@caretas', avatar:'CT', avatarBg:'#1a5276',
-        text:'Renuncia el ministro de Justicia. "Irreconciliables diferencias" con el presidente.',
-        time:'13:14', requiresTags:[] },
-      { name:'Patricia del Río', handle:'@patydelrio', avatar:'PR', avatarBg:'#7d3c98',
-        text:'Esto se desmorona. El presidente está aislado. Su propio gabinete lo abandona.',
-        time:'13:42', requiresTags:[] },
-      { name:'Augusto Álvarez R.', handle:'@aar_peru', avatar:'AR', avatarBg:'#117a65',
-        text:'CUIDADO. El Perú no necesita otra vacancia. Necesita estabilidad. <span class="hashtag">#Peru</span>',
-        time:'13:55', requiresTags:[] },
-      { name:'BBC Mundo', handle:'@bbcmundo', avatar:'BBC', avatarBg:'#1a3a5c',
-        text:'Peru president faces impeachment as cabinet ministers resign. <span class="hashtag">#Peru</span>',
-        time:'14:01', urgent:true, requiresTags:[] },
-      { name:'Embajador EE.UU.', handle:'@USAmbPeru', avatar:'US', avatarBg:'#1a3a5c',
-        text:'EE.UU. expresa su confianza en las instituciones democráticas del Perú.',
-        time:'14:12', requiresTags:['DIPLOMATICO'] }
+    twitter:[
+      {name:'El Comercio',handle:'@elcomercio_peru',avatar:'EC',avatarBg:'#c0392b',text:'🔴 ÚLTIMA HORA: Moción de vacancia alcanza 87 firmas. Debate 18:00. <span class="hashtag">#VacanciaYa</span>',time:'12:48',urgent:true,requiresTags:[]},
+      {name:'Caretas',handle:'@caretas',avatar:'CT',avatarBg:'#1a5276',text:'Renuncia ministro Justicia. "Irreconciliables diferencias" con presidente.',time:'13:14',requiresTags:[]},
+      {name:'Patricia del Río',handle:'@patydelrio',avatar:'PR',avatarBg:'#7d3c98',text:'El presidente está aislado. Su propio gabinete lo abandona.',time:'13:42',requiresTags:[]},
+      {name:'BBC Mundo',handle:'@bbcmundo',avatar:'BBC',avatarBg:'#1a3a5c',text:'Peru president faces impeachment. <span class="hashtag">#Peru</span>',time:'14:01',urgent:true,requiresTags:[]},
+      {name:'Embajador EE.UU.',handle:'@USAmbPeru',avatar:'US',avatarBg:'#1a3a5c',text:'EE.UU. confía en las instituciones democráticas del Perú.',time:'14:12',requiresTags:['DIPLOMATICO']}
     ],
-    whatsapp: [
-      { type:'system', sender:'GRUPO CREADO · COMITÉ DE CRISIS · 12:30', requiresTags:['POLITICA'] },
-      { sender:'Jefe de Gabinete', text:'Reunión urgente. 87 firmas confirmadas. Debate 18:00. ¿Estrategia?', time:'12:50', requiresTags:['POLITICA'] },
-      { sender:'Asesor Legal Presidencia', text:'La vacancia por "incapacidad moral" tiene precedentes débiles. Podemos exponer la interpretación constitucional cuestionable.', time:'12:58', requiresTags:['POLITICA','JUDICIAL'] },
-      { sender:'Asesor de Comunicaciones', text:'Mensaje presidencial: necesario antes de 16:00. Tono firme pero conciliador. Convocar diálogo nacional.', time:'13:05', requiresTags:['COMUNICACION'] },
-      { sender:'Jefe Inteligencia DINI', text:'🔴 RESERVADO: Movilizaciones en 12 ciudades. Infiltración detectada de grupos radicales en marcha Lima. Riesgo violencia: ALTO.', time:'13:20', requiresTags:['INTELIGENCIA'] },
-      { sender:'Ministro Defensa', text:'Recibí solicitud de "respaldo institucional". Aclaro: las FFAA respetan el orden constitucional, no toman parte en disputa política.', time:'14:05', requiresTags:['MILITAR','POLITICA'] },
-      { sender:'Canciller', text:'Embajadas de EE.UU., UE, Brasil y Chile piden información. Cuba y Venezuela ya emitieron declaraciones. Necesitamos línea oficial YA.', time:'14:18', requiresTags:['DIPLOMATICO'] }
+    whatsapp:[
+      {type:'system',sender:'GRUPO · COMITÉ CRISIS · 12:30',requiresTags:['POLITICA','COMUNICACION','MILITAR','INTELIGENCIA','JUDICIAL','DIPLOMATICO']},
+      {sender:'Jefe de Gabinete',text:'87 firmas. Debate 18:00. ¿Estrategia?',time:'12:50',requiresTags:['POLITICA']},
+      {sender:'Asesor Legal',text:'La "incapacidad moral" tiene precedentes débiles. Podemos exponer la interpretación cuestionable.',time:'12:58',requiresTags:['POLITICA','JUDICIAL']},
+      {sender:'Asesor de Comunicaciones',text:'Mensaje presidencial antes de 16:00. Tono firme pero conciliador.',time:'13:05',requiresTags:['COMUNICACION']},
+      {sender:'Jefe DINI',text:'🔴 RESERVADO: Movilizaciones en 12 ciudades. Infiltración grupos radicales en marcha Lima. Riesgo violencia ALTO.',time:'13:20',requiresTags:['INTELIGENCIA']},
+      {sender:'Ministro Defensa',text:'Aclaro: FFAA respetan orden constitucional, no toman parte en disputa política.',time:'14:05',requiresTags:['MILITAR','POLITICA']},
+      {sender:'Canciller',text:'Embajadas EE.UU., UE, Brasil y Chile piden información. Necesitamos línea oficial YA.',time:'14:18',requiresTags:['DIPLOMATICO']}
     ],
-    sms: [
-      { from:'JEFE PNP · LIMA', text:'Plaza Bolívar: 4,000 personas, en aumento. Solicito autorización desviar tránsito Av. Abancay.', time:'13:40', requiresTags:['INTERIOR'] },
-      { from:'GOB. REGIONAL AREQUIPA', text:'Movilización Plaza Armas Arequipa: 2,500 personas. Pacífica. Solicito instrucciones.', time:'13:48', requiresTags:['REGIONAL'] },
-      { from:'FISCAL DE LA NACIÓN', text:'Si hay vacancia y juramentación, la línea presidencial requiere certificación inmediata. Estamos en preparación.', time:'14:02', requiresTags:['JUDICIAL','POLITICA'] },
-      { from:'BCRP — PRESIDENCIA', text:'BVL -3.8%. Dólar 3.92. Riesgo país +47pb. Mercado descuenta vacancia.', time:'14:10', requiresTags:['ECONOMICO'] },
-      { from:'COMANDO CONJUNTO FFAA', text:'FFAA en funciones constitucionales. Sin movimientos atípicos. Garantizamos orden público según ley.', time:'14:15', requiresTags:['MILITAR'] },
-      { from:'EMBAJADA UE EN PERÚ', text:'La UE sigue con atención el proceso democrático y confía en el respeto al Estado de Derecho.', time:'14:22', requiresTags:['DIPLOMATICO'] }
+    sms:[
+      {from:'JEFE PNP · LIMA',text:'Plaza Bolívar: 4,000 personas, en aumento. Solicito autorización desviar tránsito.',time:'13:40',requiresTags:['INTERIOR']},
+      {from:'GOB. REGIONAL AREQUIPA',text:'Plaza Armas Arequipa: 2,500 personas. Pacífica. Solicito instrucciones.',time:'13:48',requiresTags:['REGIONAL']},
+      {from:'FISCAL DE LA NACIÓN',text:'Si hay vacancia, línea presidencial requiere certificación inmediata.',time:'14:02',requiresTags:['JUDICIAL']},
+      {from:'BCRP — PRESIDENCIA',text:'BVL -3.8%. Dólar 3.92. Riesgo país +47pb.',time:'14:10',requiresTags:['ECONOMICO']},
+      {from:'COMANDO CONJUNTO FFAA',text:'FFAA en funciones constitucionales. Sin movimientos atípicos.',time:'14:15',requiresTags:['MILITAR']},
+      {from:'EMBAJADA UE',text:'La UE sigue con atención el proceso democrático.',time:'14:22',requiresTags:['DIPLOMATICO']}
     ],
-    documents: [
-      { id:'analisis-politico', class:'SECRETO', icon:'🔴',
-        title:'Análisis Político — Escenarios de Vacancia',
-        meta:['ORIGEN: DINI / Asesoría Presidencial','FECHA: 12 MAR 2026 · 13:00'],
-        requiresTags:['POLITICA','INTELIGENCIA'],
-        body:`<h3>1. ESCENARIOS PROBABLES</h3>
-          <table><tr><th>Escenario</th><th>Probabilidad</th><th>Votos</th></tr>
-          <tr><td class="alert-text">Vacancia aprobada</td><td>62%</td><td>89-94</td></tr>
-          <tr><td>Vacancia rechazada</td><td>23%</td><td>78-85</td></tr>
-          <tr><td class="highlight">Negociación / retiro</td><td>15%</td><td>—</td></tr></table>
-          <h3>2. BANCADAS CLAVE</h3><ul>
-          <li><span class="highlight">Bancada A (29 esc.)</span>: voto duro a favor</li>
-          <li><span class="highlight">Bancada B (24 esc.)</span>: voto duro en contra</li>
-          <li><span class="alert-text">Bancada C (18 esc.) — DECISIVA</span>: dividida</li>
-          <li>Independientes (12): inclinados al voto político</li></ul>
-          <h3>3. RECOMENDACIÓN</h3>
-          <p>Iniciar contacto inmediato con bancada C. Tiempo crítico: 3 horas.</p>` },
-      { id:'movilizaciones', class:'SECRETO', icon:'🔴',
-        title:'Reporte Movilizaciones Ciudadanas',
-        meta:['ORIGEN: DINI / Operaciones'],
-        requiresTags:['INTELIGENCIA','INTERIOR'],
-        body:`<h3>SITUACIÓN ACTUAL</h3>
-          <table><tr><th>Ciudad</th><th>Punto</th><th>Aforo</th><th>Riesgo</th></tr>
-          <tr><td>Lima</td><td>Plaza Bolívar</td><td>8,000</td><td class="alert-text">ALTO</td></tr>
-          <tr><td>Lima</td><td>Campo Marte</td><td>4,500</td><td>MEDIO</td></tr>
-          <tr><td>Arequipa</td><td>Plaza Armas</td><td>2,500</td><td>MEDIO</td></tr>
-          <tr><td>Cusco</td><td>Plaza Mayor</td><td>1,800</td><td>BAJO</td></tr></table>
-          <h3>FACTOR DE RIESGO</h3>
-          <p><span class="alert-text">Presencia de grupos radicales</span> en marcha Plaza Bolívar. Estimado: 80-120 individuos.</p>` },
-      { id:'sucesion', class:'CONFIDENCIAL', icon:'⚠️',
-        title:'Protocolo de Sucesión Presidencial',
-        meta:['ORIGEN: Asesoría Jurídica PCM'],
-        requiresTags:['POLITICA','JUDICIAL'],
-        body:`<h3>MARCO CONSTITUCIONAL</h3>
-          <p>Art. 115 establece la línea sucesoria. Juramentación máximo <span class="highlight">24 horas</span> tras la vacancia.</p>
-          <h3>LÍNEA SUCESORIA</h3><ul>
-          <li>1° Vicepresidente</li><li>2° Vicepresidente</li>
-          <li>Presidente del Congreso</li></ul>` },
-      { id:'impacto-economico', class:'CONFIDENCIAL', icon:'💰',
-        title:'Impacto Económico Inmediato',
-        meta:['ORIGEN: MEF / BCRP'],
-        requiresTags:['ECONOMICO','POLITICA'],
-        body:`<h3>INDICADORES TIEMPO REAL</h3>
-          <table><tr><th>Indicador</th><th>Valor</th><th>Variación</th></tr>
-          <tr><td>BVL</td><td>22,840</td><td class="alert-text">-3.82%</td></tr>
-          <tr><td>USD/PEN</td><td>3.92</td><td class="alert-text">+0.08</td></tr>
-          <tr><td>Riesgo país</td><td>184pb</td><td class="alert-text">+47pb</td></tr></table>
-          <h3>PROYECCIÓN</h3>
-          <p>Vacancia con transición ordenada: -1.5% PBI trimestral. Crisis prolongada: -3% a -5% PBI anual.</p>` },
-      { id:'comunicado-vacancia', class:'PÚBLICO', icon:'📢',
-        title:'Borrador Comunicado Presidencial',
-        meta:['ORIGEN: Comunicaciones'],
-        requiresTags:[],
-        body:`<p>Ciudadanos del Perú:</p>
-          <p>Respeto plenamente las facultades constitucionales del Congreso y me someto al proceso legal.</p>
-          <p>Hago un llamado a la <span class="highlight">unidad nacional, al diálogo y al respeto del Estado de Derecho</span>.</p>
-          <p>Convoco a las fuerzas políticas y sociales a una mesa de diálogo nacional.</p>` }
-    ],
-    autoEvents: [
-      { delay:30000, target:'whatsapp', sender:'Asesor Jefe', text:'Bancada C pide reunión urgente. Necesitamos respuesta en 15 minutos.', requiresTags:['POLITICA'] },
-      { delay:90000, target:'twitter', urgent:true, name:'RPP Noticias', handle:'@RPPNoticias', avatar:'RPP', avatarBg:'#c0392b', text:'🔴 ÚLTIMA HORA: Primeros enfrentamientos en Plaza Bolívar. <span class="hashtag">#VacanciaYa</span>', requiresTags:[] }
+    documents:[
+      {id:'analisis-politico',class:'SECRETO',icon:'🔴',title:'Análisis Político — Escenarios de Vacancia',meta:['ORIGEN: DINI','FECHA: 12 MAR 2026'],requiresTags:['POLITICA','INTELIGENCIA'],body:`<h3>1. ESCENARIOS PROBABLES</h3><table><tr><th>Escenario</th><th>Probabilidad</th><th>Votos</th></tr><tr><td class="alert-text">Vacancia aprobada</td><td>62%</td><td>89-94</td></tr><tr><td>Rechazada</td><td>23%</td><td>78-85</td></tr><tr><td class="highlight">Negociación</td><td>15%</td><td>—</td></tr></table><h3>2. BANCADAS</h3><ul><li><span class="highlight">A (29 esc.)</span>: a favor</li><li><span class="highlight">B (24 esc.)</span>: en contra</li><li><span class="alert-text">C (18 esc.) DECISIVA</span></li></ul>`},
+      {id:'movilizaciones',class:'SECRETO',icon:'🔴',title:'Reporte Movilizaciones',meta:['ORIGEN: DINI'],requiresTags:['INTELIGENCIA','INTERIOR'],body:`<h3>SITUACIÓN</h3><table><tr><th>Ciudad</th><th>Aforo</th><th>Riesgo</th></tr><tr><td>Lima Plaza Bolívar</td><td>8,000</td><td class="alert-text">ALTO</td></tr><tr><td>Campo Marte</td><td>4,500</td><td>MEDIO</td></tr></table><p><span class="alert-text">Grupos radicales</span> en Plaza Bolívar: 80-120 individuos.</p>`},
+      {id:'sucesion',class:'CONFIDENCIAL',icon:'⚠️',title:'Protocolo Sucesión',meta:['ORIGEN: PCM'],requiresTags:['POLITICA','JUDICIAL'],body:`<h3>MARCO CONSTITUCIONAL</h3><p>Art. 115. Juramentación máximo <span class="highlight">24 horas</span>.</p><h3>LÍNEA</h3><ul><li>1° VP</li><li>2° VP</li><li>Presidente Congreso</li></ul>`},
+      {id:'impacto-eco',class:'CONFIDENCIAL',icon:'💰',title:'Impacto Económico',meta:['ORIGEN: MEF/BCRP'],requiresTags:['ECONOMICO'],body:`<h3>INDICADORES</h3><table><tr><th>Indicador</th><th>Valor</th><th>Var</th></tr><tr><td>BVL</td><td>22,840</td><td class="alert-text">-3.82%</td></tr><tr><td>USD/PEN</td><td>3.92</td><td class="alert-text">+0.08</td></tr></table>`},
+      {id:'comunicado',class:'PÚBLICO',icon:'📢',title:'Borrador Comunicado',meta:['ORIGEN: Comunicaciones'],requiresTags:[],body:`<p>Ciudadanos del Perú:</p><p>Respeto las facultades constitucionales del Congreso.</p><p>Convoco a una mesa de diálogo nacional.</p>`}
     ]
   },
-
   'lasbambas': {
-    id: 'lasbambas',
-    icon: '🚧',
-    title: 'Conflicto Social — Toma Minera (Las Bambas)',
-    desc: 'Comunidades toman acceso a mina. Bloqueo del corredor minero, paralización de operaciones y escalada con presencia policial.',
-    primaryTags: ['RIESGO', 'INTERIOR', 'REGIONAL', 'ECONOMICO'],
-    alertLevel: 'ALERTA SOCIAL',
-    startDate: '08 ABR 2026 · 06:30 hrs',
-    startSeconds: 14400,
-    mapCenter: [-14.122, -72.323],
-    mapZoom: 11,
-    stats: [
-      { label: 'BLOQUEOS ACTIVOS', val: '4', color: 'red' },
-      { label: 'COMUNEROS', val: '~1,200', color: 'amber' },
-      { label: 'DÍAS PARALIZACIÓN', val: '8', color: 'red' },
-      { label: 'PÉRDIDA DIARIA USD M', val: '7.2', color: 'red' }
+    id:'lasbambas', icon:'🚧',
+    title:'Conflicto Social — Toma Minera (Las Bambas)',
+    desc:'Comunidades toman acceso a mina. Bloqueo del corredor minero, paralización de operaciones.',
+    primaryTags:['RIESGO','INTERIOR','REGIONAL','ECONOMICO'],
+    alertLevel:'ALERTA SOCIAL',
+    startDate:'08 ABR 2026 · 06:30 hrs',
+    startSeconds:14400,
+    mapCenter:[-14.122,-72.323], mapZoom:11,
+    stats:[
+      {label:'BLOQUEOS',val:'4',color:'red'},
+      {label:'COMUNEROS',val:'~1,200',color:'amber'},
+      {label:'DÍAS PARO',val:'8',color:'red'},
+      {label:'PÉRDIDA USD M/DÍA',val:'7.2',color:'red'}
     ],
-    incidents: [
-      { lat:-14.122, lng:-72.323, type:'critical', tagType:'INTERIOR',
-        title:'Bloqueo principal Km 70', meta:'Challhuahuacho · T+00:00',
-        label:'🔴 Bloqueo del corredor minero' },
-      { lat:-14.085, lng:-72.401, type:'critical', tagType:'INTERIOR',
-        title:'Toma acceso a mina', meta:'Apurímac · T+00:15',
-        label:'🔴 Acceso a planta bloqueado' },
-      { lat:-14.260, lng:-72.245, type:'warning', tagType:'RIESGO',
-        title:'Bloqueo Capacmarca', meta:'Cusco · T+02:00',
-        label:'🟡 Segundo punto de bloqueo' },
-      { lat:-14.380, lng:-72.180, type:'warning', tagType:'REGIONAL',
-        title:'Asamblea comunal', meta:'Chumbivilcas · T+03:30',
-        label:'🟡 Asamblea extendida' },
-      { lat:-14.150, lng:-72.310, type:'info', tagType:'INTERIOR',
-        title:'Despliegue DINOES', meta:'Refuerzos · T+03:45',
-        label:'ℹ Tropa especializada' }
+    incidents:[
+      {lat:-14.122,lng:-72.323,type:'critical',tagType:'INTERIOR',title:'Bloqueo Km 70',meta:'Challhuahuacho · T+00:00',label:'🔴 Bloqueo principal'},
+      {lat:-14.085,lng:-72.401,type:'critical',tagType:'INTERIOR',title:'Toma acceso a mina',meta:'Apurímac · T+00:15',label:'🔴 Acceso bloqueado'},
+      {lat:-14.260,lng:-72.245,type:'warning',tagType:'RIESGO',title:'Bloqueo Capacmarca',meta:'Cusco · T+02:00',label:'🟡 Segundo punto'},
+      {lat:-14.380,lng:-72.180,type:'warning',tagType:'REGIONAL',title:'Asamblea comunal',meta:'Chumbivilcas · T+03:30',label:'🟡 Asamblea extendida'},
+      {lat:-14.150,lng:-72.310,type:'info',tagType:'INTERIOR',title:'Despliegue DINOES',meta:'Refuerzos · T+03:45',label:'ℹ Tropa especializada'}
     ],
-    timeline: [
-      { time:'06:30', dot:'amber', tagType:'RIESGO', title:'Comunidades inician movilización',
-        desc:'Asamblea de 6 comunidades de Cotabambas declara paro indefinido.' },
-      { time:'07:15', dot:'red', tagType:'INTERIOR', title:'Bloqueo Km 70 confirmado',
-        desc:'~800 comuneros bloquean con piedras, maderos y vehículos.' },
-      { time:'08:00', dot:'red', tagType:'ECONOMICO', title:'Empresa detiene operaciones',
-        desc:'Paralización total. Pérdida USD 7.2M/día.' },
-      { time:'08:30', dot:'amber', tagType:'REGIONAL', title:'Gobernador convoca diálogo',
-        desc:'Gobernador Apurímac pide mesa de diálogo inmediata.' },
-      { time:'09:15', dot:'amber', tagType:'INTERIOR', title:'DINOES llega a zona',
-        desc:'180 efectivos especializados. Mantienen perímetro, no intervienen.' },
-      { time:'09:45', dot:'red', tagType:'COMUNICACION', title:'Líder comunal habla a prensa',
-        desc:'"No nos moveremos hasta que se respeten nuestros acuerdos."' },
-      { time:'10:30', dot:'red', tagType:'INTERIOR', title:'Segundo punto: Capacmarca',
-        desc:'Comunidades de Cusco se suman. Bloqueo se extiende.' }
+    timeline:[
+      {time:'06:30',dot:'amber',tagType:'RIESGO',title:'Comunidades inician movilización',desc:'6 comunidades de Cotabambas declaran paro.'},
+      {time:'07:15',dot:'red',tagType:'INTERIOR',title:'Bloqueo Km 70 confirmado',desc:'~800 comuneros bloquean.'},
+      {time:'08:00',dot:'red',tagType:'ECONOMICO',title:'Empresa detiene operaciones',desc:'Pérdida USD 7.2M/día.'},
+      {time:'08:30',dot:'amber',tagType:'REGIONAL',title:'Gobernador convoca diálogo',desc:'Gobernador Apurímac pide mesa.'},
+      {time:'09:15',dot:'amber',tagType:'INTERIOR',title:'DINOES llega a zona',desc:'180 efectivos. Mantienen perímetro.'},
+      {time:'09:45',dot:'red',tagType:'COMUNICACION',title:'Líder comunal a prensa',desc:'"No nos moveremos hasta que se respeten acuerdos."'},
+      {time:'10:30',dot:'red',tagType:'INTERIOR',title:'Segundo punto: Capacmarca',desc:'Comunidades Cusco se suman.'}
     ],
-    twitter: [
-      { name:'Diario Correo', handle:'@diariocorreo', avatar:'DC', avatarBg:'#c0392b',
-        text:'Comunidades Cotabambas bloquean corredor minero. Operaciones paralizadas. <span class="hashtag">#LasBambas</span>',
-        time:'08:12', urgent:true, requiresTags:[] },
-      { name:'Líder Comunal', handle:'@apurimac_resiste', avatar:'AR', avatarBg:'#117a65',
-        text:'No es capricho. Es nuestra agua, nuestra tierra. 12 años esperando cumplimiento.',
-        time:'08:45', requiresTags:[] },
-      { name:'CONFIEP', handle:'@confiep_peru', avatar:'CP', avatarBg:'#1a3a5c',
-        text:'Otro bloqueo en el corredor. Perú pierde competitividad. Necesitamos Estado que garantice operación.',
-        time:'09:20', requiresTags:[] },
-      { name:'Defensoría del Pueblo', handle:'@DefensoriaPeru', avatar:'DP', avatarBg:'#7d3c98',
-        text:'Exhortamos a las partes a deponer acciones violentas y dialogar de buena fe.',
-        time:'09:35', requiresTags:[] },
-      { name:'Reuters Latam', handle:'@ReutersLatam', avatar:'RT', avatarBg:'#1a5276',
-        text:'BREAKING: Peru copper output threatened. Mining giant halts operations. <span class="hashtag">#Copper</span>',
-        time:'10:15', urgent:true, requiresTags:[] },
-      { name:'Embajada China', handle:'@ChinaEmbPeru', avatar:'CN', avatarBg:'#c0392b',
-        text:'Confiamos en el gobierno peruano para resolver pacíficamente la situación.',
-        time:'10:40', requiresTags:['DIPLOMATICO'] }
+    twitter:[
+      {name:'Diario Correo',handle:'@diariocorreo',avatar:'DC',avatarBg:'#c0392b',text:'Comunidades Cotabambas bloquean corredor. <span class="hashtag">#LasBambas</span>',time:'08:12',urgent:true,requiresTags:[]},
+      {name:'Líder Comunal',handle:'@apurimac_resiste',avatar:'AR',avatarBg:'#117a65',text:'No es capricho. Es nuestra agua, nuestra tierra. 12 años esperando.',time:'08:45',requiresTags:[]},
+      {name:'CONFIEP',handle:'@confiep_peru',avatar:'CP',avatarBg:'#1a3a5c',text:'Otro bloqueo. Perú pierde competitividad.',time:'09:20',requiresTags:[]},
+      {name:'Defensoría',handle:'@DefensoriaPeru',avatar:'DP',avatarBg:'#7d3c98',text:'Exhortamos a las partes a dialogar de buena fe.',time:'09:35',requiresTags:[]},
+      {name:'Reuters Latam',handle:'@ReutersLatam',avatar:'RT',avatarBg:'#1a5276',text:'Peru copper output threatened. Mining giant halts operations.',time:'10:15',urgent:true,requiresTags:[]},
+      {name:'Embajada China',handle:'@ChinaEmbPeru',avatar:'CN',avatarBg:'#c0392b',text:'Confiamos en el gobierno peruano para resolver pacíficamente.',time:'10:40',requiresTags:['DIPLOMATICO']}
     ],
-    whatsapp: [
-      { type:'system', sender:'GRUPO · COMITÉ CRISIS CORREDOR MINERO · 07:00', requiresTags:['POLITICA'] },
-      { sender:'Prefecto Apurímac', text:'Km 70 confirmado. ~800 personas. Líderes piden presencia PCM. Ánimos elevados pero sin violencia.', time:'07:30', requiresTags:['REGIONAL','INTERIOR'] },
-      { sender:'Gerente General Empresa', text:'Operaciones paralizadas. 2,400 trabajadores en campamento. Necesitamos garantías de evacuación si escala.', time:'08:15', requiresTags:['ECONOMICO'] },
-      { sender:'Jefe DINOES Sur', text:'180 efectivos en sitio. Perímetro a 500m. No desalojo sin orden escrita y autorización política. Riesgo víctimas: ALTO.', time:'09:30', requiresTags:['INTERIOR','MILITAR'] },
-      { sender:'Ministra Energía', text:'Paralización cuesta USD 50M acumulados. Empresa contempla fuerza mayor que afecta exportaciones.', time:'09:50', requiresTags:['ECONOMICO','POLITICA'] },
-      { sender:'Vocero Comunidades', text:'Mensaje vía mediador: "No nos movemos sin firma del Presidente en documento de cumplimiento acuerdos 2014".', time:'10:25', requiresTags:['POLITICA','REGIONAL'] },
-      { sender:'Asesor MINEM', text:'Hay 78 acuerdos firmados desde 2012, solo 31 cumplidos. Demanda principal es agua: río Challhuahuacho efectivamente bajo.', time:'10:38', requiresTags:['POLITICA','RIESGO'] }
+    whatsapp:[
+      {type:'system',sender:'GRUPO · COMITÉ CORREDOR MINERO · 07:00',requiresTags:['POLITICA','REGIONAL','INTERIOR','ECONOMICO','MILITAR','DIPLOMATICO','RIESGO']},
+      {sender:'Prefecto Apurímac',text:'Km 70: ~800 personas. Piden presencia PCM. Ánimos elevados sin violencia.',time:'07:30',requiresTags:['REGIONAL','INTERIOR']},
+      {sender:'Gerente General',text:'Operaciones paralizadas. 2,400 trabajadores en campamento. Necesitamos garantías.',time:'08:15',requiresTags:['ECONOMICO']},
+      {sender:'Jefe DINOES Sur',text:'180 efectivos. Perímetro 500m. No desalojo sin orden política. Riesgo víctimas ALTO.',time:'09:30',requiresTags:['INTERIOR','MILITAR']},
+      {sender:'Ministra Energía',text:'USD 50M acumulados. Empresa contempla fuerza mayor.',time:'09:50',requiresTags:['ECONOMICO','POLITICA']},
+      {sender:'Vocero Comunidades',text:'"No nos movemos sin firma del Presidente en cumplimiento acuerdos 2014".',time:'10:25',requiresTags:['POLITICA','REGIONAL']},
+      {sender:'Asesor MINEM',text:'78 acuerdos firmados desde 2012, solo 31 cumplidos. Río Challhuahuacho efectivamente bajo.',time:'10:38',requiresTags:['POLITICA','RIESGO']}
     ],
-    sms: [
-      { from:'GOB. REGIONAL APURÍMAC', text:'Carretera 3S bloqueada. 47 camiones varados. 4 pueblos sin suministro. Urge PCM.', time:'08:30', requiresTags:['REGIONAL'] },
-      { from:'SUTRAN TRANSPORTE', text:'12 buses interprovinciales detenidos. 480 pasajeros aislados. Solicitamos FFAA para extracción.', time:'09:05', requiresTags:['INTERIOR'] },
-      { from:'JEFE PNP COTABAMBAS', text:'800 comuneros Km 70. Niños y adultos mayores en primera fila. Desalojo tendrá víctimas. Solicito instrucción política.', time:'09:30', requiresTags:['INTERIOR'] },
-      { from:'MEF DESPACHO', text:'Cálculo: pérdida fiscal -USD 320M anuales si paro >30 días. Crítico para canon minero regional.', time:'10:00', requiresTags:['ECONOMICO'] },
-      { from:'EMBAJADA CHINA', text:'Solicitamos garantías sobre seguridad personal chino (340 ciudadanos en zona).', time:'10:45', requiresTags:['DIPLOMATICO'] },
-      { from:'FISCALÍA APURÍMAC', text:'Investigación preliminar por delitos contra libertad de tránsito. Evaluamos flagrancia.', time:'11:00', requiresTags:['JUDICIAL'] }
+    sms:[
+      {from:'GOB. REGIONAL APURÍMAC',text:'Carretera 3S bloqueada. 47 camiones varados. 4 pueblos sin suministro.',time:'08:30',requiresTags:['REGIONAL']},
+      {from:'SUTRAN',text:'12 buses detenidos. 480 pasajeros aislados. Solicitamos FFAA.',time:'09:05',requiresTags:['INTERIOR']},
+      {from:'JEFE PNP COTABAMBAS',text:'800 comuneros Km 70. Niños y adultos en primera fila. Desalojo tendrá víctimas.',time:'09:30',requiresTags:['INTERIOR']},
+      {from:'MEF',text:'Pérdida fiscal -USD 320M anuales si paro >30 días.',time:'10:00',requiresTags:['ECONOMICO']},
+      {from:'EMBAJADA CHINA',text:'Garantías para 340 ciudadanos chinos en zona.',time:'10:45',requiresTags:['DIPLOMATICO']},
+      {from:'FISCALÍA APURÍMAC',text:'Investigación preliminar por delitos contra libertad de tránsito.',time:'11:00',requiresTags:['JUDICIAL']}
     ],
-    documents: [
-      { id:'reporte-conflicto', class:'SECRETO', icon:'🔴',
-        title:'Reporte Operacional Las Bambas',
-        meta:['ORIGEN: DINI / Conflictos Sociales','FECHA: 08 ABR 2026'],
-        requiresTags:['INTELIGENCIA','INTERIOR'],
-        body:`<h3>1. SITUACIÓN ACTUAL</h3>
-          <p>Bloqueo Km 70 corredor minero del sur. <span class="alert-text">~1,200 personas movilizadas</span> de 6 comunidades Cotabambas + 4 Chumbivilcas. <span class="highlight">Octavo conflicto en 24 meses</span>.</p>
-          <h3>2. ACTORES</h3>
-          <table><tr><th>Actor</th><th>Posición</th><th>Capacidad</th></tr>
-          <tr><td>Frente Defensa Cotabambas</td><td>Conducción</td><td>ALTA</td></tr>
-          <tr><td>Comunidad Fuerabamba</td><td>Acuerdos 2014</td><td>ALTA</td></tr>
-          <tr><td>Empresa minera</td><td>Suspende operaciones</td><td>Recurso legal</td></tr>
-          <tr><td class="alert-text">Asesores externos</td><td>Radicalización</td><td>MEDIA</td></tr></table>
-          <h3>3. DEMANDAS</h3><ul>
-          <li><span class="highlight">Cumplimiento de los 47 acuerdos pendientes desde 2014</span></li>
-          <li>Recategorización EIA</li><li>Compensación uso vías comunales</li>
-          <li>Empleo local sostenible</li><li>Mesa permanente con PCM</li></ul>
-          <h3>4. ESCENARIO RIESGO</h3>
-          <p>Sin respuesta política en <span class="alert-text">48-72 horas</span>: extensión a otros corredores (Antapaccay, Tintaya, Constancia), paro regional escalonado, afectación inversión USD 12B.</p>` },
-      { id:'acuerdos-2014', class:'CONFIDENCIAL', icon:'⚠️',
-        title:'Cumplimiento Acuerdos 2014',
-        meta:['ORIGEN: PCM / Diálogo'],
-        requiresTags:['POLITICA','REGIONAL'],
-        body:`<h3>RESUMEN</h3>
-          <p>De los 78 compromisos del Estado en actas Fuerabamba (2014, 2016, 2018):</p>
-          <table><tr><th>Categoría</th><th>Cumplidos</th><th>Parcial</th><th>Sin cumplir</th></tr>
-          <tr><td>Infraestructura</td><td>14</td><td>8</td><td class="alert-text">5</td></tr>
-          <tr><td>Educación/Salud</td><td>9</td><td>6</td><td class="alert-text">12</td></tr>
-          <tr><td>Empleo local</td><td>4</td><td>3</td><td class="alert-text">11</td></tr>
-          <tr><td>Compensaciones</td><td>4</td><td>2</td><td class="alert-text">8</td></tr>
-          <tr><td><strong>TOTAL</strong></td><td><strong>31</strong></td><td><strong>19</strong></td><td class="alert-text"><strong>36</strong></td></tr></table>
-          <h3>ANÁLISIS</h3>
-          <p><span class="alert-text">Incumplimiento del 46% en 12 años</span> es el factor estructural del conflicto.</p>` },
-      { id:'impacto-mineria', class:'CONFIDENCIAL', icon:'💰',
-        title:'Impacto Económico Paralización',
-        meta:['ORIGEN: MEF'],
-        requiresTags:['ECONOMICO'],
-        body:`<h3>PÉRDIDAS DIRECTAS</h3>
-          <table><tr><th>Concepto</th><th>Diario USD</th><th>Acumulado 8d</th></tr>
-          <tr><td>Producción cobre</td><td>5.8M</td><td class="alert-text">46.4M</td></tr>
-          <tr><td>Logística</td><td>0.9M</td><td>7.2M</td></tr>
-          <tr><td>Servicios</td><td>0.5M</td><td>4.0M</td></tr>
-          <tr><td><strong>TOTAL</strong></td><td><strong>7.2M</strong></td><td><strong class="alert-text">57.6M</strong></td></tr></table>
-          <h3>IMPACTO FISCAL ANUAL</h3>
-          <ul><li>GORE Apurímac: <span class="alert-text">-S/. 480M</span></li>
-          <li>Cotabambas: <span class="alert-text">-S/. 120M</span></li>
-          <li>Tesoro Público: <span class="alert-text">-S/. 320M</span></li></ul>` },
-      { id:'plan-dialogo', class:'PÚBLICO', icon:'📋',
-        title:'Lineamientos Mesa de Diálogo',
-        meta:['ORIGEN: PCM'],
-        requiresTags:[],
-        body:`<h3>OBJETIVOS</h3><ul>
-          <li>Levantar bloqueo en el corto plazo</li>
-          <li>Cronograma de cumplimiento de acuerdos</li>
-          <li>Mecanismo permanente de seguimiento</li>
-          <li>Protocolo para futuras controversias</li></ul>
-          <h3>METODOLOGÍA</h3>
-          <p>Mesa tripartita: Estado (PCM, MINEM, GOREs) — Comunidades — Empresa. Facilitación por Defensoría.</p>` },
-      { id:'cancilleria-china', class:'SECRETO', icon:'🌐',
-        title:'Comunicación Reservada Embajada China',
-        meta:['ORIGEN: Cancillería'],
-        requiresTags:['DIPLOMATICO','POLITICA'],
-        body:`<h3>RESUMEN</h3>
-          <p>Embajada China solicita <span class="alert-text">tres reuniones reservadas</span> en 8 días. Empresa con capital chino mayoritario; el conflicto se monitorea desde Beijing.</p>
-          <h3>POSICIÓN CHINA</h3><ul>
-          <li>Garantías seguridad personal (340 ciudadanos chinos)</li>
-          <li>Preocupación por "patrón recurrente" en operaciones chinas</li>
-          <li>Recuerda inversión china USD 28B en Perú</li>
-          <li>Sugiere "demostrar capacidad de garantizar inversiones"</li></ul>
-          <h3>RECOMENDACIÓN</h3>
-          <p>Mantener comunicación frecuente sin ceder presiones específicas. Mala gestión afecta inversiones futuras.</p>` }
-    ],
-    autoEvents: [
-      { delay:30000, target:'whatsapp', sender:'Prefecto Apurímac', text:'Tensión escala. Comuneros amenazan tomar aeropuerto Andahuaylas si no hay respuesta en 6 horas. ¿Instrucciones?', requiresTags:['REGIONAL'] },
-      { delay:90000, target:'twitter', urgent:true, name:'AP News', handle:'@AP', avatar:'AP', avatarBg:'#1a3a5c', text:'Peru copper crisis deepens. Community leaders threaten airport blockade. <span class="hashtag">#Peru</span>', requiresTags:[] }
+    documents:[
+      {id:'reporte-conflicto',class:'SECRETO',icon:'🔴',title:'Reporte Operacional Las Bambas',meta:['ORIGEN: DINI'],requiresTags:['INTELIGENCIA','INTERIOR'],body:`<h3>1. SITUACIÓN</h3><p><span class="alert-text">~1,200 personas movilizadas</span>. Octavo conflicto en 24 meses.</p><h3>2. DEMANDAS</h3><ul><li><span class="highlight">Cumplimiento de los 47 acuerdos pendientes desde 2014</span></li><li>Recategorización EIA</li><li>Mesa permanente con PCM</li></ul>`},
+      {id:'acuerdos',class:'CONFIDENCIAL',icon:'⚠️',title:'Cumplimiento Acuerdos 2014',meta:['ORIGEN: PCM'],requiresTags:['POLITICA','REGIONAL'],body:`<h3>RESUMEN</h3><table><tr><th>Categoría</th><th>Cumplidos</th><th>Sin cumplir</th></tr><tr><td>Infraestructura</td><td>14</td><td class="alert-text">5</td></tr><tr><td>Educación/Salud</td><td>9</td><td class="alert-text">12</td></tr><tr><td><strong>TOTAL</strong></td><td><strong>31</strong></td><td class="alert-text"><strong>36</strong></td></tr></table>`},
+      {id:'impacto-min',class:'CONFIDENCIAL',icon:'💰',title:'Impacto Económico Paralización',meta:['ORIGEN: MEF'],requiresTags:['ECONOMICO'],body:`<h3>PÉRDIDAS</h3><table><tr><th>Concepto</th><th>Diario USD</th></tr><tr><td>Producción cobre</td><td>5.8M</td></tr><tr><td>Logística</td><td>0.9M</td></tr><tr><td><strong>TOTAL</strong></td><td><strong>7.2M</strong></td></tr></table>`},
+      {id:'dialogo',class:'PÚBLICO',icon:'📋',title:'Lineamientos Mesa Diálogo',meta:['ORIGEN: PCM'],requiresTags:[],body:`<h3>OBJETIVOS</h3><ul><li>Levantar bloqueo</li><li>Cronograma cumplimiento</li><li>Mecanismo permanente</li></ul>`},
+      {id:'china',class:'SECRETO',icon:'🌐',title:'Comunicación Reservada Embajada China',meta:['ORIGEN: Cancillería'],requiresTags:['DIPLOMATICO','POLITICA'],body:`<h3>RESUMEN</h3><p>Empresa con capital chino mayoritario. <span class="alert-text">Tres reuniones reservadas</span> en 8 días.</p><h3>POSICIÓN</h3><ul><li>Garantías para 340 ciudadanos chinos</li><li>Inversión china USD 28B en Perú</li></ul>`}
     ]
   }
 };
@@ -1371,13 +1180,17 @@ let session = {
   currentParticipant: null,
   isDirector: false,
   sessionCode: null,
-  simSeconds: 0
+  simSeconds: 0,
+  participantRow: null,
+  takenRoles: new Set()
 };
 
 let map = null;
 let markersLayer = null;
 let clockInterval = null;
-let autoEventTimers = [];
+let heartbeatInterval = null;
+let realtimeChannel = null;
+let injectedEvents = [];
 
 // ════════════════════════════════════════
 // NAVIGATION
@@ -1394,18 +1207,44 @@ function goToParticipantLogin() {
   document.getElementById('participant-login').classList.add('show');
 }
 
-function backToLanding() {
+async function backToLanding() {
+  await cleanup();
   document.getElementById('director-setup').style.display = 'none';
   document.getElementById('participant-login').classList.remove('show');
   document.getElementById('app').classList.remove('show');
   document.getElementById('landing-screen').style.display = 'flex';
   stopClock();
-  clearAutoEvents();
+  // Reset session
+  session = {scenarioId:null,scenario:null,roles:[],currentParticipant:null,isDirector:false,sessionCode:null,simSeconds:0,participantRow:null,takenRoles:new Set()};
+  injectedEvents = [];
 }
 
 function exitToLanding() {
   if (confirm('¿Salir del ejercicio?')) backToLanding();
 }
+
+async function cleanup() {
+  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
+  if (realtimeChannel) {
+    try { await supabase.removeChannel(realtimeChannel); } catch(e){}
+    realtimeChannel = null;
+  }
+  if (session.participantRow && session.participantRow.id) {
+    try {
+      await supabase.from('participants').delete().eq('id', session.participantRow.id);
+    } catch(e) { console.warn('cleanup', e); }
+  }
+}
+
+window.addEventListener('beforeunload', () => {
+  if (session.participantRow && session.participantRow.id && supabase) {
+    // Best effort cleanup
+    navigator.sendBeacon && navigator.sendBeacon(
+      `${SUPABASE_URL}/rest/v1/participants?id=eq.${session.participantRow.id}`,
+      new Blob([], { type: 'application/json' })
+    );
+  }
+});
 
 // ════════════════════════════════════════
 // DIRECTOR SETUP
@@ -1433,7 +1272,7 @@ function selectScenario(id, cardEl) {
   cardEl.classList.add('selected');
   session.scenarioId = id;
   session.scenario = SCENARIOS[id];
-  showToast('ESCENARIO SELECCIONADO', SCENARIOS[id].title, 'amber');
+  showToast('ESCENARIO', SCENARIOS[id].title, 'amber');
 }
 
 function loadRolePreset(preset) {
@@ -1441,23 +1280,23 @@ function loadRolePreset(preset) {
     session.roles = [];
   } else if (preset === 'minimal') {
     session.roles = [
-      { name: 'Presidente', tags: ['POLITICA','INTELIGENCIA'] },
-      { name: 'Primer Ministro', tags: ['POLITICA','COMUNICACION'] },
-      { name: 'Ministro Defensa', tags: ['POLITICA','MILITAR'] },
-      { name: 'Ministro Interior', tags: ['POLITICA','INTERIOR'] }
+      {name:'Presidente',tags:['POLITICA','INTELIGENCIA','COMUNICACION']},
+      {name:'Primer Ministro',tags:['POLITICA','COMUNICACION','JUDICIAL']},
+      {name:'Ministro Defensa',tags:['POLITICA','MILITAR','INTELIGENCIA']},
+      {name:'Ministro Interior',tags:['POLITICA','INTERIOR','INTELIGENCIA']}
     ];
   } else if (preset === 'full') {
     session.roles = [
-      { name: 'Presidente', tags: ['POLITICA','INTELIGENCIA','COMUNICACION'] },
-      { name: 'Primer Ministro', tags: ['POLITICA','COMUNICACION','JUDICIAL'] },
-      { name: 'Ministro Defensa', tags: ['POLITICA','MILITAR','INTELIGENCIA'] },
-      { name: 'Ministro Interior', tags: ['POLITICA','INTERIOR','INTELIGENCIA'] },
-      { name: 'Ministro Salud', tags: ['POLITICA','SALUD'] },
-      { name: 'Ministro Economía', tags: ['POLITICA','ECONOMICO'] },
-      { name: 'Canciller', tags: ['POLITICA','DIPLOMATICO'] },
-      { name: 'Vocero / Comunicaciones', tags: ['COMUNICACION'] },
-      { name: 'Jefe INDECI', tags: ['RIESGO','INTERIOR'] },
-      { name: 'Gobernador Regional', tags: ['REGIONAL','RIESGO'] }
+      {name:'Presidente',tags:['POLITICA','INTELIGENCIA','COMUNICACION']},
+      {name:'Primer Ministro',tags:['POLITICA','COMUNICACION','JUDICIAL']},
+      {name:'Ministro Defensa',tags:['POLITICA','MILITAR','INTELIGENCIA']},
+      {name:'Ministro Interior',tags:['POLITICA','INTERIOR','INTELIGENCIA']},
+      {name:'Ministro Salud',tags:['POLITICA','SALUD']},
+      {name:'Ministro Economía',tags:['POLITICA','ECONOMICO']},
+      {name:'Canciller',tags:['POLITICA','DIPLOMATICO']},
+      {name:'Vocero Comunicaciones',tags:['COMUNICACION']},
+      {name:'Jefe INDECI',tags:['RIESGO','INTERIOR']},
+      {name:'Gobernador Regional',tags:['REGIONAL','RIESGO']}
     ];
   }
   renderRoleBuilder();
@@ -1498,11 +1337,8 @@ function toggleTag(roleIdx, tagKey, chip) {
 }
 
 function addRole() {
-  if (session.roles.length >= 10) {
-    showToast('LÍMITE', 'Máximo 10 roles', 'red');
-    return;
-  }
-  session.roles.push({ name: 'Nuevo Rol', tags: [] });
+  if (session.roles.length >= 10) { showToast('LÍMITE','Máximo 10 roles','red'); return; }
+  session.roles.push({name:'Nuevo Rol',tags:[]});
   renderRoleBuilder();
 }
 
@@ -1511,25 +1347,39 @@ function removeRole(idx) {
   renderRoleBuilder();
 }
 
-function launchSession() {
-  if (!session.scenarioId) { showToast('ERROR', 'Selecciona un escenario', 'red'); return; }
-  if (session.roles.length === 0) { showToast('ERROR', 'Configura al menos un rol', 'red'); return; }
+async function launchSession() {
+  if (!session.scenarioId) { showToast('ERROR','Selecciona escenario','red'); return; }
+  if (session.roles.length === 0) { showToast('ERROR','Configura al menos un rol','red'); return; }
+
+  const btn = document.getElementById('launch-btn');
+  btn.disabled = true;
+  btn.textContent = 'CREANDO SESIÓN...';
 
   session.sessionCode = generateSessionCode();
-  document.getElementById('session-code-value').textContent = session.sessionCode;
-  document.getElementById('session-code-display').style.display = 'block';
 
-  localStorage.setItem('crisissim_session', JSON.stringify({
-    code: session.sessionCode,
-    scenarioId: session.scenarioId,
-    roles: session.roles
-  }));
+  try {
+    const { error } = await supabase.from('sessions').insert({
+      id: session.sessionCode,
+      scenario_id: session.scenarioId,
+      roles: session.roles,
+      status: 'active'
+    });
+    if (error) throw error;
 
-  setTimeout(() => {
-    session.isDirector = true;
-    session.currentParticipant = { name: 'DIRECTOR', tags: [], isDirector: true };
-    enterApp();
-  }, 1800);
+    document.getElementById('session-code-value').textContent = session.sessionCode;
+    document.getElementById('session-code-display').style.display = 'block';
+
+    setTimeout(() => {
+      session.isDirector = true;
+      session.currentParticipant = {name:'DIRECTOR',tags:[],isDirector:true};
+      enterApp();
+    }, 1500);
+  } catch (e) {
+    console.error(e);
+    showToast('ERROR','No se pudo crear la sesión: ' + e.message,'red');
+    btn.disabled = false;
+    btn.textContent = '⬡ INICIAR EJERCICIO';
+  }
 }
 
 function generateSessionCode() {
@@ -1545,40 +1395,66 @@ function generateSessionCode() {
 // ════════════════════════════════════════
 // PARTICIPANT LOGIN
 // ════════════════════════════════════════
-function joinSession() {
+async function joinSession() {
   const code = document.getElementById('session-code-input').value.trim().toUpperCase();
-  if (!code) { showToast('ERROR', 'Ingresa el código', 'red'); return; }
+  if (!code) { showToast('ERROR','Ingresa el código','red'); return; }
 
-  const stored = localStorage.getItem('crisissim_session');
-  if (!stored) { showToast('NO ENCONTRADA', 'El Director debe iniciar primero', 'red'); return; }
+  const btn = document.getElementById('join-session-btn');
+  btn.disabled = true;
+  btn.textContent = 'VALIDANDO...';
 
-  const data = JSON.parse(stored);
-  if (data.code !== code) { showToast('CÓDIGO INVÁLIDO', 'No coincide con sesión activa', 'red'); return; }
+  try {
+    const { data: sessionData, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('id', code)
+      .single();
 
-  session.sessionCode = data.code;
-  session.scenarioId = data.scenarioId;
-  session.scenario = SCENARIOS[data.scenarioId];
-  session.roles = data.roles;
+    if (error || !sessionData) {
+      showToast('CÓDIGO INVÁLIDO','Sesión no encontrada','red');
+      btn.disabled = false;
+      btn.textContent = 'VALIDAR CÓDIGO';
+      return;
+    }
 
-  renderParticipantRoles();
-  document.getElementById('join-session-btn').style.display = 'none';
-  document.getElementById('session-code-input').disabled = true;
-  document.getElementById('plogin-roles').classList.add('show');
-  document.getElementById('enter-session-btn').style.display = 'block';
-  showToast('SESIÓN VÁLIDA', session.scenario.title, 'cyan');
+    session.sessionCode = sessionData.id;
+    session.scenarioId = sessionData.scenario_id;
+    session.scenario = SCENARIOS[sessionData.scenario_id];
+    session.roles = sessionData.roles;
+
+    // Get currently taken roles
+    const { data: participants } = await supabase
+      .from('participants')
+      .select('role_index')
+      .eq('session_id', code);
+    
+    session.takenRoles = new Set((participants || []).map(p => p.role_index));
+
+    renderParticipantRoles();
+    document.getElementById('join-session-btn').style.display = 'none';
+    document.getElementById('session-code-input').disabled = true;
+    document.getElementById('plogin-roles').classList.add('show');
+    document.getElementById('enter-session-btn').style.display = 'block';
+    showToast('SESIÓN VÁLIDA', session.scenario.title, 'green');
+  } catch (e) {
+    showToast('ERROR', e.message, 'red');
+    btn.disabled = false;
+    btn.textContent = 'VALIDAR CÓDIGO';
+  }
 }
 
 function renderParticipantRoles() {
   const container = document.getElementById('plogin-roles');
   container.innerHTML = '';
   session.roles.forEach((role, idx) => {
+    const taken = session.takenRoles.has(idx);
     const btn = document.createElement('div');
-    btn.className = 'plogin-role-btn';
-    btn.onclick = () => selectParticipantRole(idx, btn);
+    btn.className = 'plogin-role-btn' + (taken ? ' taken' : '');
+    if (!taken) btn.onclick = () => selectParticipantRole(idx, btn);
     btn.innerHTML = `
       <div class="pr-num">ROL-${String(idx+1).padStart(2,'0')}</div>
       <div class="pr-name">${role.name}</div>
-      <div class="pr-status">● DISPONIBLE</div>
+      <div class="pr-status">● ${taken ? 'OCUPADO' : 'DISPONIBLE'}</div>
     `;
     container.appendChild(btn);
   });
@@ -1587,19 +1463,49 @@ function renderParticipantRoles() {
 function selectParticipantRole(idx, btn) {
   document.querySelectorAll('.plogin-role-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  session.currentParticipant = { ...session.roles[idx], isDirector: false };
+  session.currentParticipant = { ...session.roles[idx], isDirector: false, roleIndex: idx };
 }
 
-function enterAsParticipant() {
-  if (!session.currentParticipant) { showToast('ERROR', 'Selecciona un rol', 'red'); return; }
-  session.isDirector = false;
-  enterApp();
+async function enterAsParticipant() {
+  if (!session.currentParticipant) { showToast('ERROR','Selecciona un rol','red'); return; }
+  
+  const btn = document.getElementById('enter-session-btn');
+  btn.disabled = true;
+  btn.textContent = 'CONECTANDO...';
+
+  try {
+    const { data, error } = await supabase.from('participants').insert({
+      session_id: session.sessionCode,
+      role_index: session.currentParticipant.roleIndex,
+      role_name: session.currentParticipant.name,
+      tags: session.currentParticipant.tags
+    }).select().single();
+
+    if (error) {
+      if (error.code === '23505') {
+        showToast('ROL OCUPADO','Otro participante tomó este rol','red');
+      } else {
+        showToast('ERROR', error.message, 'red');
+      }
+      btn.disabled = false;
+      btn.textContent = 'INGRESAR AL EJERCICIO';
+      return;
+    }
+
+    session.participantRow = data;
+    session.isDirector = false;
+    enterApp();
+  } catch (e) {
+    showToast('ERROR', e.message, 'red');
+    btn.disabled = false;
+    btn.textContent = 'INGRESAR AL EJERCICIO';
+  }
 }
 
 // ════════════════════════════════════════
 // ENTER APP
 // ════════════════════════════════════════
-function enterApp() {
+async function enterApp() {
   document.getElementById('landing-screen').style.display = 'none';
   document.getElementById('director-setup').style.display = 'none';
   document.getElementById('participant-login').classList.remove('show');
@@ -1626,27 +1532,194 @@ function enterApp() {
   session.simSeconds = session.scenario.startSeconds;
   startClock();
 
+  // Load existing injected events
+  await loadInjectedEvents();
+
   renderSitrepView();
   renderCommsView();
   renderDocsView();
   if (session.isDirector) renderDirectorView();
 
   setTimeout(() => initMap(), 100);
-  scheduleAutoEvents();
+
+  // Subscribe to realtime
+  subscribeToRealtime();
+
+  // Heartbeat for participants
+  if (!session.isDirector && session.participantRow) {
+    heartbeatInterval = setInterval(updateHeartbeat, 15000);
+  }
 
   showToast('ACCESO CONCEDIDO',
     session.isDirector ? 'Modo Director — visibilidad total' : 'Rol: ' + session.currentParticipant.name,
-    'cyan');
+    'green');
+}
+
+async function loadInjectedEvents() {
+  try {
+    const { data } = await supabase
+      .from('events')
+      .select('*')
+      .eq('session_id', session.sessionCode)
+      .order('created_at', { ascending: true });
+    injectedEvents = data || [];
+  } catch(e) { console.warn('loadEvents', e); }
+}
+
+async function updateHeartbeat() {
+  if (!session.participantRow) return;
+  try {
+    await supabase.from('participants')
+      .update({ last_seen: new Date().toISOString() })
+      .eq('id', session.participantRow.id);
+  } catch(e){}
 }
 
 // ════════════════════════════════════════
-// TAG FILTERING
+// REALTIME SUBSCRIPTIONS
 // ════════════════════════════════════════
-function canSee(requiredTags) {
-  if (!requiredTags || requiredTags.length === 0) return true;
+function subscribeToRealtime() {
+  realtimeChannel = supabase
+    .channel('session-' + session.sessionCode)
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'events', filter: 'session_id=eq.' + session.sessionCode },
+      (payload) => handleIncomingEvent(payload.new)
+    )
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'participants', filter: 'session_id=eq.' + session.sessionCode },
+      (payload) => handleParticipantChange()
+    )
+    .on('postgres_changes',
+      { event: 'DELETE', schema: 'public', table: 'participants', filter: 'session_id=eq.' + session.sessionCode },
+      (payload) => handleParticipantChange()
+    )
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'participants', filter: 'session_id=eq.' + session.sessionCode },
+      (payload) => handleParticipantChange()
+    )
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        setConnStatus('connected', 'CONECTADO · TIEMPO REAL');
+      }
+    });
+}
+
+function handleIncomingEvent(event) {
+  injectedEvents.push(event);
+  // Check if I can see it
+  if (!canSeeByTags(event.target_tags || [])) return;
+
+  // Render based on channel
+  const time = new Date(event.created_at);
+  const timeStr = `${String(time.getHours()).padStart(2,'0')}:${String(time.getMinutes()).padStart(2,'0')}`;
+
+  if (event.channel === 'whatsapp') {
+    const feed = document.getElementById('wa-feed');
+    if (feed) {
+      const msg = document.createElement('div');
+      msg.className = 'wa-msg incoming injected';
+      msg.innerHTML = `<div class="msg-sender">${escapeHtml(event.sender||'—')}</div><div class="msg-text">${escapeHtml(event.body || event.title || '')}</div><div class="msg-time">${timeStr}</div>`;
+      feed.appendChild(msg);
+      feed.scrollTop = feed.scrollHeight;
+    }
+    if (!session.isDirector) showToast('NUEVO MENSAJE', event.sender + ': ' + (event.title || event.body).substring(0,40), 'amber');
+  }
+
+  if (event.channel === 'twitter') {
+    const feed = document.getElementById('tw-feed');
+    if (feed) {
+      const t = document.createElement('div');
+      t.className = `tweet injected ${event.level==='red'?'urgent':''}`;
+      t.innerHTML = `
+        <div class="tweet-header">
+          <div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div>
+          <div class="tweet-meta">
+            <div class="tweet-name">${escapeHtml(event.sender||'—')}</div>
+            <div class="tweet-handle">@evento</div>
+          </div>
+        </div>
+        <div class="tweet-text">${escapeHtml(event.body || event.title || '')}</div>
+        <div class="tweet-footer"><span class="tweet-time">${timeStr}</span></div>
+      `;
+      feed.insertBefore(t, feed.firstChild);
+    }
+    if (!session.isDirector) showToast('NUEVO TWEET', event.sender, 'amber');
+  }
+
+  if (event.channel === 'sms') {
+    const feed = document.getElementById('sms-feed');
+    if (feed) {
+      const s = document.createElement('div');
+      s.className = 'sms-msg injected';
+      s.innerHTML = `<div class="sms-from">${escapeHtml((event.sender||'—').toUpperCase())}</div><div class="sms-text">${escapeHtml(event.body || event.title || '')}</div><div class="sms-meta"><span>${escapeHtml(event.title||'')}</span><span>${timeStr}</span></div>`;
+      feed.appendChild(s);
+      feed.scrollTop = feed.scrollHeight;
+    }
+    if (!session.isDirector) showToast('NUEVO SMS', event.sender, 'amber');
+  }
+
+  if (event.channel === 'timeline') {
+    const zone = document.getElementById('tl-inject-zone');
+    if (zone) {
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = `
+        <div class="tl-time">${timeStr}</div>
+        <div class="tl-dot ${event.level||'amber'}"></div>
+        <div class="tl-content">
+          <div class="tl-title">${escapeHtml(event.title||'')}</div>
+          <div class="tl-desc">${escapeHtml(event.body||'')}</div>
+        </div>
+      `;
+      zone.parentNode.insertBefore(item, zone);
+    }
+  }
+
+  // Update log for director
+  if (session.isDirector) {
+    const log = document.getElementById('inject-log');
+    if (log) {
+      const e = document.createElement('div');
+      e.className = 'log-entry';
+      const tagInfo = (event.target_tags||[]).length > 0 ? `→ [${event.target_tags.join(',')}]` : '→ PÚBLICO';
+      e.innerHTML = `<div class="log-time">${timeStr}</div><div class="log-msg"><strong>EVENTO</strong> · ${event.channel.toUpperCase()} ${tagInfo}: ${escapeHtml((event.title||event.body||'').substring(0,40))}</div>`;
+      log.appendChild(e);
+      log.scrollTop = log.scrollHeight;
+    }
+  }
+}
+
+async function handleParticipantChange() {
+  if (!session.isDirector) return;
+  try {
+    const { data } = await supabase
+      .from('participants')
+      .select('*')
+      .eq('session_id', session.sessionCode);
+    updateDirectorRoleStatus(data || []);
+  } catch(e){}
+}
+
+function updateDirectorRoleStatus(participants) {
+  const connected = new Set(participants.map(p => p.role_index));
+  document.querySelectorAll('[data-role-idx]').forEach(el => {
+    const idx = parseInt(el.dataset.roleIdx);
+    const dot = el.querySelector('.role-online-dot');
+    if (dot) {
+      dot.className = 'role-online-dot ' + (connected.has(idx) ? 'online' : 'offline');
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// TAG FILTERING — Lógica OR
+// ════════════════════════════════════════
+function canSeeByTags(requiredTags) {
+  if (!requiredTags || requiredTags.length === 0) return true; // Público
   if (session.isDirector) return true;
   const userTags = session.currentParticipant.tags || [];
-  return requiredTags.every(t => userTags.includes(t));
+  // OR logic: AT LEAST ONE tag must match
+  return requiredTags.some(t => userTags.includes(t));
 }
 
 function canSeeIncident(inc) {
@@ -1680,7 +1753,7 @@ function renderSitrepView() {
           <div class="inc-title">${inc.title}</div>
           <div class="inc-meta"><span>${inc.meta.split('·')[0]}</span><span>${inc.meta.split('·')[1]||''}</span></div>
         </div>
-      `).join('')}
+      `).join('') || '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:10px">Sin incidentes visibles para tu rol</div>'}
     </div>
   `;
 
@@ -1701,6 +1774,26 @@ function renderSitrepView() {
     `).join('')}
     <div id="tl-inject-zone"></div>
   `;
+
+  // Re-inject events from history
+  injectedEvents.filter(e => e.channel === 'timeline' && canSeeByTags(e.target_tags||[])).forEach(e => {
+    const zone = document.getElementById('tl-inject-zone');
+    if (zone) {
+      const time = new Date(e.created_at);
+      const timeStr = `${String(time.getHours()).padStart(2,'0')}:${String(time.getMinutes()).padStart(2,'0')}`;
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = `
+        <div class="tl-time">${timeStr}</div>
+        <div class="tl-dot ${e.level||'amber'}"></div>
+        <div class="tl-content">
+          <div class="tl-title">${escapeHtml(e.title||'')}</div>
+          <div class="tl-desc">${escapeHtml(e.body||'')}</div>
+        </div>
+      `;
+      zone.parentNode.insertBefore(item, zone);
+    }
+  });
 }
 
 function renderStatsHTML(stats) {
@@ -1722,8 +1815,8 @@ function renderStatsHTML(stats) {
 function initMap() {
   if (map) { map.remove(); map = null; }
   const sc = session.scenario;
-  map = L.map('crisis-map', { center: sc.mapCenter, zoom: sc.mapZoom, zoomControl: true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(map);
+  map = L.map('crisis-map', {center:sc.mapCenter, zoom:sc.mapZoom, zoomControl:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OSM'}).addTo(map);
   markersLayer = L.layerGroup().addTo(map);
   addMapMarkers();
 }
@@ -1757,14 +1850,14 @@ function renderCommsView() {
   const view = document.getElementById('view-comms');
   const activeTab = document.querySelector('.nav-tab.active').dataset.tab;
 
-  const visibleWA = sc.whatsapp.filter(m => canSee(m.requiresTags));
-  const visibleSMS = sc.sms.filter(m => canSee(m.requiresTags));
-  const visibleTW = sc.twitter.filter(m => canSee(m.requiresTags));
+  const visibleWA = sc.whatsapp.filter(m => canSeeByTags(m.requiresTags));
+  const visibleSMS = sc.sms.filter(m => canSeeByTags(m.requiresTags));
+  const visibleTW = sc.twitter.filter(m => canSeeByTags(m.requiresTags));
 
   const channels = [];
-  if (visibleWA.length > 0) channels.push('wa');
-  if (visibleTW.length > 0) channels.push('tw');
-  if (visibleSMS.length > 0) channels.push('sms');
+  if (visibleWA.length > 0 || session.isDirector) channels.push('wa');
+  if (visibleTW.length > 0 || session.isDirector) channels.push('tw');
+  if (visibleSMS.length > 0 || session.isDirector) channels.push('sms');
 
   view.className = `tab-view cols-${channels.length || 1}` + (activeTab === 'comms' ? ' active' : '');
 
@@ -1798,7 +1891,7 @@ function renderCommsView() {
         </div>
         <div class="comm-input-area">
           <input class="comm-input" id="wa-input" type="text" placeholder="Escribir mensaje...">
-          <button class="send-btn" onclick="sendWAMessage()">ENVIAR</button>
+          <button class="send-btn" onclick="sendChatMessage('whatsapp')">ENVIAR</button>
         </div>
       </div>
     `;
@@ -1820,7 +1913,7 @@ function renderCommsView() {
         </div>
         <div class="comm-input-area">
           <input class="comm-input" id="tw-input" type="text" placeholder="Tweet oficial...">
-          <button class="send-btn" style="background:var(--accent-blue);color:white" onclick="sendTweet()">PUBLICAR</button>
+          <button class="send-btn" style="background:var(--accent-blue);color:white" onclick="sendChatMessage('twitter')">PUBLICAR</button>
         </div>
       </div>
     `;
@@ -1842,50 +1935,92 @@ function renderCommsView() {
         </div>
         <div class="comm-input-area">
           <input class="comm-input" id="sms-input" type="text" placeholder="Responder...">
-          <button class="send-btn" style="background:var(--accent-purple);color:white" onclick="sendSMS()">ENVIAR</button>
+          <button class="send-btn" style="background:var(--accent-purple);color:white" onclick="sendChatMessage('sms')">ENVIAR</button>
         </div>
       </div>
     `;
   }
 
   view.innerHTML = html;
+
+  // Append events from history
+  injectedEvents.forEach(e => {
+    if (!canSeeByTags(e.target_tags||[])) return;
+    const time = new Date(e.created_at);
+    const timeStr = `${String(time.getHours()).padStart(2,'0')}:${String(time.getMinutes()).padStart(2,'0')}`;
+
+    if (e.channel === 'whatsapp') {
+      const feed = document.getElementById('wa-feed');
+      if (feed) {
+        const msg = document.createElement('div');
+        msg.className = 'wa-msg incoming injected';
+        msg.innerHTML = `<div class="msg-sender">${escapeHtml(e.sender||'—')}</div><div class="msg-text">${escapeHtml(e.body||e.title||'')}</div><div class="msg-time">${timeStr}</div>`;
+        feed.appendChild(msg);
+      }
+    }
+    if (e.channel === 'twitter') {
+      const feed = document.getElementById('tw-feed');
+      if (feed) {
+        const t = document.createElement('div');
+        t.className = `tweet injected ${e.level==='red'?'urgent':''}`;
+        t.innerHTML = `<div class="tweet-header"><div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div><div class="tweet-meta"><div class="tweet-name">${escapeHtml(e.sender||'—')}</div><div class="tweet-handle">@evento</div></div></div><div class="tweet-text">${escapeHtml(e.body||e.title||'')}</div><div class="tweet-footer"><span class="tweet-time">${timeStr}</span></div>`;
+        feed.insertBefore(t, feed.firstChild);
+      }
+    }
+    if (e.channel === 'sms') {
+      const feed = document.getElementById('sms-feed');
+      if (feed) {
+        const s = document.createElement('div');
+        s.className = 'sms-msg injected';
+        s.innerHTML = `<div class="sms-from">${escapeHtml((e.sender||'—').toUpperCase())}</div><div class="sms-text">${escapeHtml(e.body||e.title||'')}</div><div class="sms-meta"><span>${escapeHtml(e.title||'')}</span><span>${timeStr}</span></div>`;
+        feed.appendChild(s);
+      }
+    }
+  });
 }
 
 function renderWAMsg(m) {
   if (m.type === 'system') return `<div class="wa-msg system">— ${m.sender} —</div>`;
-  return `
-    <div class="wa-msg incoming">
-      <div class="msg-sender">${m.sender}</div>
-      <div class="msg-text">${m.text}</div>
-      <div class="msg-time">${m.time}</div>
-    </div>
-  `;
+  return `<div class="wa-msg incoming"><div class="msg-sender">${m.sender}</div><div class="msg-text">${m.text}</div><div class="msg-time">${m.time}</div></div>`;
 }
 
 function renderTweet(t) {
-  return `
-    <div class="tweet ${t.urgent ? 'urgent' : ''}">
-      <div class="tweet-header">
-        <div class="tweet-avatar" style="background:${t.avatarBg};color:white">${t.avatar}</div>
-        <div class="tweet-meta">
-          <div class="tweet-name">${t.name}</div>
-          <div class="tweet-handle">${t.handle}</div>
-        </div>
-      </div>
-      <div class="tweet-text">${t.text}</div>
-      <div class="tweet-footer"><span class="tweet-time">${t.time}</span></div>
-    </div>
-  `;
+  return `<div class="tweet ${t.urgent?'urgent':''}"><div class="tweet-header"><div class="tweet-avatar" style="background:${t.avatarBg};color:white">${t.avatar}</div><div class="tweet-meta"><div class="tweet-name">${t.name}</div><div class="tweet-handle">${t.handle}</div></div></div><div class="tweet-text">${t.text}</div><div class="tweet-footer"><span class="tweet-time">${t.time}</span></div></div>`;
 }
 
 function renderSMS(s) {
-  return `
-    <div class="sms-msg">
-      <div class="sms-from">${s.from}</div>
-      <div class="sms-text">${s.text}</div>
-      <div class="sms-meta"><span>SMS</span><span>${s.time}</span></div>
-    </div>
-  `;
+  return `<div class="sms-msg"><div class="sms-from">${s.from}</div><div class="sms-text">${s.text}</div><div class="sms-meta"><span>SMS</span><span>${s.time}</span></div></div>`;
+}
+
+// ════════════════════════════════════════
+// SEND MESSAGES (sync via Supabase)
+// ════════════════════════════════════════
+async function sendChatMessage(channel) {
+  let inputId, defaultTags;
+  if (channel === 'whatsapp') { inputId = 'wa-input'; defaultTags = session.currentParticipant.tags || []; }
+  else if (channel === 'twitter') { inputId = 'tw-input'; defaultTags = []; }
+  else if (channel === 'sms') { inputId = 'sms-input'; defaultTags = session.currentParticipant.tags || []; }
+
+  const input = document.getElementById(inputId);
+  const text = input.value.trim();
+  if (!text) return;
+
+  const senderName = session.isDirector ? 'DIRECTOR' : session.currentParticipant.name;
+
+  try {
+    await supabase.from('events').insert({
+      session_id: session.sessionCode,
+      channel: channel,
+      level: 'blue',
+      sender: senderName,
+      title: '',
+      body: text,
+      target_tags: defaultTags
+    });
+    input.value = '';
+  } catch (e) {
+    showToast('ERROR ENVÍO', e.message, 'red');
+  }
 }
 
 // ════════════════════════════════════════
@@ -1893,17 +2028,11 @@ function renderSMS(s) {
 // ════════════════════════════════════════
 function renderDocsView() {
   const sc = session.scenario;
-  const visible = sc.documents.filter(d => canSee(d.requiresTags));
+  const visible = sc.documents.filter(d => canSeeByTags(d.requiresTags));
 
   const sidebar = document.getElementById('docs-sidebar');
   if (visible.length === 0) {
-    sidebar.innerHTML = `
-      <div class="locked-notice" style="margin:16px">
-        <div class="ln-icon">🔒</div>
-        <div class="ln-title">SIN DOCUMENTOS</div>
-        <div class="ln-desc">Tu rol no tiene acceso a documentos.</div>
-      </div>
-    `;
+    sidebar.innerHTML = `<div class="locked-notice" style="margin:16px"><div class="ln-icon">🔒</div><div class="ln-title">SIN DOCUMENTOS</div><div class="ln-desc">Tu rol no tiene acceso a documentos.</div></div>`;
     document.getElementById('doc-viewer-content').innerHTML = '';
     return;
   }
@@ -1937,7 +2066,6 @@ function showDoc(docId, el) {
   if (!doc) return;
   document.querySelectorAll('.doc-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
-
   const classColor = doc.class === 'SECRETO' ? '#f87171' : doc.class === 'CONFIDENCIAL' ? '#fbbf24' : '#8aa4bf';
   document.getElementById('doc-viewer-content').innerHTML = `
     <div class="doc-viewer-header">
@@ -1958,7 +2086,7 @@ function renderDirectorView() {
     <div class="facil-panel">
       <div class="facil-panel-header">
         <div class="facil-panel-title">INYECTAR EVENTO</div>
-        <div class="facil-panel-subtitle">Eventos dirigidos a roles específicos</div>
+        <div class="facil-panel-subtitle">Sincronizado a participantes en tiempo real</div>
       </div>
       <div class="facil-content">
         <div class="inject-form">
@@ -1981,11 +2109,9 @@ function renderDirectorView() {
             </select>
           </div>
           <div class="form-group">
-            <label>Visible para roles con etiquetas (vacío = público)</label>
+            <label>Visible para roles con AL MENOS UNA tag (vacío = público para todos)</label>
             <div class="tag-targeting" id="inject-tag-targeting">
-              ${Object.keys(ACCESS_TAGS).map(k => `
-                <span class="tag-chip" onclick="this.classList.toggle('active')" data-tag="${k}">${k}</span>
-              `).join('')}
+              ${Object.keys(ACCESS_TAGS).map(k => `<span class="tag-chip" onclick="this.classList.toggle('active')" data-tag="${k}">${k}</span>`).join('')}
             </div>
           </div>
           <div class="form-group">
@@ -2007,19 +2133,13 @@ function renderDirectorView() {
 
     <div class="facil-panel">
       <div class="facil-panel-header">
-        <div class="facil-panel-title">EVENTOS DEL ESCENARIO</div>
-        <div class="facil-panel-subtitle">Disparar eventos pre-armados</div>
+        <div class="facil-panel-title">REGISTRO DE EVENTOS</div>
+        <div class="facil-panel-subtitle">Auditoría de la sesión</div>
       </div>
       <div class="facil-content">
-        ${session.scenario.autoEvents ? session.scenario.autoEvents.map((ev,i) => `
-          <button class="control-btn" onclick="triggerAutoEvent(${i})">
-            ⚡ Disparar evento del guion #${i+1}
-          </button>
-        `).join('') : ''}
-        <button class="control-btn danger" onclick="confirmReset()">↺ REINICIAR EJERCICIO</button>
-
-        <div style="margin-top:20px">
-          <div class="panel-section-title" style="margin-bottom:10px">REGISTRO INYECCIONES</div>
+        <button class="control-btn danger" onclick="confirmReset()">↺ TERMINAR Y REINICIAR</button>
+        <div style="margin-top:16px">
+          <div class="panel-section-title" style="margin-bottom:10px">LOG DE INYECCIONES</div>
           <div class="inject-log" id="inject-log">
             <div class="log-entry">
               <div class="log-time">--:--</div>
@@ -2032,13 +2152,13 @@ function renderDirectorView() {
 
     <div class="facil-panel">
       <div class="facil-panel-header">
-        <div class="facil-panel-title">ROLES CONFIGURADOS</div>
-        <div class="facil-panel-subtitle">Participantes del ejercicio</div>
+        <div class="facil-panel-title">PARTICIPANTES CONECTADOS</div>
+        <div class="facil-panel-subtitle">Estado en tiempo real</div>
       </div>
       <div class="facil-content">
         <div class="role-status-grid">
           ${session.roles.map((r,i) => `
-            <div class="role-status-item">
+            <div class="role-status-item" data-role-idx="${i}">
               <div class="role-online-dot offline"></div>
               <div style="flex:1">
                 <div class="role-status-name">${r.name}</div>
@@ -2059,9 +2179,12 @@ function renderDirectorView() {
       </div>
     </div>
   `;
+
+  // Initial load of participant status
+  handleParticipantChange();
 }
 
-function injectEvent() {
+async function injectEvent() {
   const channel = document.getElementById('inject-channel').value;
   const level = document.getElementById('inject-level').value;
   const sender = document.getElementById('inject-sender').value.trim() || 'DIRECTOR';
@@ -2069,208 +2192,38 @@ function injectEvent() {
   const body = document.getElementById('inject-body').value.trim();
   const targetTags = Array.from(document.querySelectorAll('#inject-tag-targeting .tag-chip.active')).map(c => c.dataset.tag);
 
-  if (!title && !body) { showToast('ERROR', 'Escribe título o mensaje', 'red'); return; }
+  if (!title && !body) { showToast('ERROR','Escribe título o mensaje','red'); return; }
 
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  if (channel === 'timeline') {
-    const zone = document.getElementById('tl-inject-zone');
-    if (zone) {
-      const item = document.createElement('div');
-      item.className = 'timeline-item';
-      item.innerHTML = `
-        <div class="tl-time">${time}</div>
-        <div class="tl-dot ${level}"></div>
-        <div class="tl-content">
-          <div class="tl-title">${title}</div>
-          <div class="tl-desc">${body}</div>
-        </div>
-      `;
-      zone.parentNode.insertBefore(item, zone);
-    }
-  }
-
-  if (channel === 'whatsapp') {
-    const feed = document.getElementById('wa-feed');
-    if (feed) {
-      const msg = document.createElement('div');
-      msg.className = 'wa-msg incoming';
-      msg.innerHTML = `<div class="msg-sender">${sender}</div><div class="msg-text">${body || title}</div><div class="msg-time">${time}</div>`;
-      feed.appendChild(msg);
-      feed.scrollTop = feed.scrollHeight;
-    }
-  }
-
-  if (channel === 'twitter') {
-    const feed = document.getElementById('tw-feed');
-    if (feed) {
-      const t = document.createElement('div');
-      t.className = `tweet ${level==='red'?'urgent':''}`;
-      t.innerHTML = `
-        <div class="tweet-header">
-          <div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div>
-          <div class="tweet-meta">
-            <div class="tweet-name">${sender}</div>
-            <div class="tweet-handle">@evento_${time.replace(':','')}</div>
-          </div>
-        </div>
-        <div class="tweet-text">${body || title}</div>
-        <div class="tweet-footer"><span class="tweet-time">${time}</span></div>
-      `;
-      feed.insertBefore(t, feed.firstChild);
-    }
-  }
-
-  if (channel === 'sms') {
-    const feed = document.getElementById('sms-feed');
-    if (feed) {
-      const s = document.createElement('div');
-      s.className = 'sms-msg';
-      s.innerHTML = `<div class="sms-from">${sender.toUpperCase()}</div><div class="sms-text">${body || title}</div><div class="sms-meta"><span>${title}</span><span>${time}</span></div>`;
-      feed.appendChild(s);
-      feed.scrollTop = feed.scrollHeight;
-    }
-  }
-
-  const log = document.getElementById('inject-log');
-  if (log) {
-    const e = document.createElement('div');
-    e.className = 'log-entry';
-    const tagInfo = targetTags.length > 0 ? `→ [${targetTags.join(',')}]` : '→ PÚBLICO';
-    e.innerHTML = `<div class="log-time">${time}</div><div class="log-msg"><strong>DIR</strong> · ${channel.toUpperCase()} ${tagInfo}: ${title || body.substring(0,30)}</div>`;
-    log.appendChild(e);
-  }
-
-  document.getElementById('inject-title').value = '';
-  document.getElementById('inject-body').value = '';
-  document.getElementById('inject-sender').value = '';
-  document.querySelectorAll('#inject-tag-targeting .tag-chip.active').forEach(c => c.classList.remove('active'));
-
-  showToast('EVENTO INYECTADO', `${channel.toUpperCase()} · ${title || 'sin título'}`, 'amber');
-}
-
-function triggerAutoEvent(i) {
-  const ev = session.scenario.autoEvents[i];
-  if (!ev) return;
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  if (ev.target === 'whatsapp' && canSee(ev.requiresTags)) {
-    const feed = document.getElementById('wa-feed');
-    if (feed) {
-      const msg = document.createElement('div');
-      msg.className = 'wa-msg incoming';
-      msg.innerHTML = `<div class="msg-sender">${ev.sender}</div><div class="msg-text">${ev.text}</div><div class="msg-time">${time}</div>`;
-      feed.appendChild(msg);
-      feed.scrollTop = feed.scrollHeight;
-    }
-  }
-
-  if (ev.target === 'twitter' && canSee(ev.requiresTags)) {
-    const feed = document.getElementById('tw-feed');
-    if (feed) {
-      const t = document.createElement('div');
-      t.className = `tweet ${ev.urgent?'urgent':''}`;
-      t.innerHTML = `
-        <div class="tweet-header">
-          <div class="tweet-avatar" style="background:${ev.avatarBg};color:white">${ev.avatar}</div>
-          <div class="tweet-meta">
-            <div class="tweet-name">${ev.name}</div>
-            <div class="tweet-handle">${ev.handle}</div>
-          </div>
-        </div>
-        <div class="tweet-text">${ev.text}</div>
-        <div class="tweet-footer"><span class="tweet-time">${time}</span></div>
-      `;
-      feed.insertBefore(t, feed.firstChild);
-    }
-  }
-
-  showToast('EVENTO DISPARADO', `Guion #${i+1}`, 'amber');
-}
-
-function confirmReset() {
-  if (confirm('¿Reiniciar el ejercicio?')) {
-    localStorage.removeItem('crisissim_session');
-    location.reload();
-  }
-}
-
-function scheduleAutoEvents() {
-  clearAutoEvents();
-  if (!session.scenario.autoEvents) return;
-  if (!session.isDirector) {
-    session.scenario.autoEvents.forEach((ev,i) => {
-      const timer = setTimeout(() => triggerAutoEvent(i), ev.delay);
-      autoEventTimers.push(timer);
+  try {
+    const { error } = await supabase.from('events').insert({
+      session_id: session.sessionCode,
+      channel: channel,
+      level: level,
+      sender: sender,
+      title: title,
+      body: body,
+      target_tags: targetTags
     });
+    if (error) throw error;
+
+    document.getElementById('inject-title').value = '';
+    document.getElementById('inject-body').value = '';
+    document.getElementById('inject-sender').value = '';
+    document.querySelectorAll('#inject-tag-targeting .tag-chip.active').forEach(c => c.classList.remove('active'));
+
+    showToast('EVENTO INYECTADO', 'Sincronizado a participantes', 'amber');
+  } catch (e) {
+    showToast('ERROR', e.message, 'red');
   }
 }
 
-function clearAutoEvents() {
-  autoEventTimers.forEach(t => clearTimeout(t));
-  autoEventTimers = [];
-}
-
-// ════════════════════════════════════════
-// MESSAGING
-// ════════════════════════════════════════
-function sendWAMessage() {
-  const input = document.getElementById('wa-input');
-  const text = input.value.trim();
-  if (!text) return;
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const feed = document.getElementById('wa-feed');
-  const msg = document.createElement('div');
-  msg.className = 'wa-msg outgoing';
-  msg.innerHTML = `<div class="msg-sender">${session.isDirector?'DIRECTOR':session.currentParticipant.name}</div><div class="msg-text">${text}</div><div class="msg-time">${time} ✓✓</div>`;
-  feed.appendChild(msg);
-  feed.scrollTop = feed.scrollHeight;
-  input.value = '';
-}
-
-function sendTweet() {
-  const input = document.getElementById('tw-input');
-  const text = input.value.trim();
-  if (!text) return;
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const feed = document.getElementById('tw-feed');
-  const tweet = document.createElement('div');
-  tweet.className = 'tweet';
-  tweet.style.borderLeft = '3px solid var(--accent-blue)';
-  tweet.innerHTML = `
-    <div class="tweet-header">
-      <div class="tweet-avatar" style="background:#1a3a5c;color:#60a5fa">GOB</div>
-      <div class="tweet-meta">
-        <div class="tweet-name">${session.isDirector?'Cuenta oficial':session.currentParticipant.name}</div>
-        <div class="tweet-handle">@oficial ✓</div>
-      </div>
-    </div>
-    <div class="tweet-text">${text}</div>
-    <div class="tweet-footer"><span class="tweet-time">${time}</span></div>
-  `;
-  feed.insertBefore(tweet, feed.firstChild);
-  input.value = '';
-  showToast('TWEET PUBLICADO', 'En línea oficial', 'cyan');
-}
-
-function sendSMS() {
-  const input = document.getElementById('sms-input');
-  const text = input.value.trim();
-  if (!text) return;
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const feed = document.getElementById('sms-feed');
-  const s = document.createElement('div');
-  s.className = 'sms-msg';
-  s.style.borderLeftColor = 'var(--accent-cyan)';
-  s.innerHTML = `<div class="sms-from">${session.isDirector?'DIRECTOR':session.currentParticipant.name} → CAMPO</div><div class="sms-text">${text}</div><div class="sms-meta"><span>Enviado</span><span>${time}</span></div>`;
-  feed.appendChild(s);
-  feed.scrollTop = feed.scrollHeight;
-  input.value = '';
+async function confirmReset() {
+  if (!confirm('¿Terminar la sesión? Se eliminarán todos los datos de la sesión actual.')) return;
+  try {
+    await supabase.from('sessions').delete().eq('id', session.sessionCode);
+  } catch(e) {}
+  await cleanup();
+  location.reload();
 }
 
 // ════════════════════════════════════════
@@ -2307,16 +2260,30 @@ function stopClock() {
 }
 
 // ════════════════════════════════════════
-// TOAST
+// UTILS
 // ════════════════════════════════════════
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function showToast(title, msg, type='cyan') {
   const container = document.getElementById('toast-container');
   const t = document.createElement('div');
-  t.className = `toast ${type==='red'?'red':type==='amber'?'amber':''}`;
+  t.className = `toast ${type==='red'?'red':type==='amber'?'amber':type==='green'?'green':''}`;
   t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${msg}</div>`;
   container.appendChild(t);
   setTimeout(() => t.remove(), 5200);
 }
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+window.addEventListener('load', () => {
+  if (initSupabase()) {
+    setConnStatus('connected', 'CONECTADO');
+  }
+});
 </script>
 </body>
 </html>
