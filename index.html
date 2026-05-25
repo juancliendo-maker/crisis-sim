@@ -1001,16 +1001,19 @@ body::before {
 const SUPABASE_URL = 'https://nuqteugvwhtrhyxjaxej.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_5mvrdWx44xGRkbyoC00ulw_q8iSfECT';
 
-let supabase = null;
+let db = null;
 
 function initSupabase() {
   try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (!window.supabase || !window.supabase.createClient) {
+      throw new Error('Librería Supabase no cargó');
+    }
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     setConnStatus('connected', 'CONECTADO');
     return true;
   } catch (e) {
     console.error('Supabase init error:', e);
-    setConnStatus('error', 'ERROR DE CONEXIÓN');
+    setConnStatus('error', 'ERROR: ' + e.message);
     return false;
   }
 }
@@ -1226,18 +1229,18 @@ function exitToLanding() {
 async function cleanup() {
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
   if (realtimeChannel) {
-    try { await supabase.removeChannel(realtimeChannel); } catch(e){}
+    try { await db.removeChannel(realtimeChannel); } catch(e){}
     realtimeChannel = null;
   }
   if (session.participantRow && session.participantRow.id) {
     try {
-      await supabase.from('participants').delete().eq('id', session.participantRow.id);
+      await db.from('participants').delete().eq('id', session.participantRow.id);
     } catch(e) { console.warn('cleanup', e); }
   }
 }
 
 window.addEventListener('beforeunload', () => {
-  if (session.participantRow && session.participantRow.id && supabase) {
+  if (session.participantRow && session.participantRow.id && db) {
     // Best effort cleanup
     navigator.sendBeacon && navigator.sendBeacon(
       `${SUPABASE_URL}/rest/v1/participants?id=eq.${session.participantRow.id}`,
@@ -1358,7 +1361,7 @@ async function launchSession() {
   session.sessionCode = generateSessionCode();
 
   try {
-    const { error } = await supabase.from('sessions').insert({
+    const { error } = await db.from('sessions').insert({
       id: session.sessionCode,
       scenario_id: session.scenarioId,
       roles: session.roles,
@@ -1404,7 +1407,7 @@ async function joinSession() {
   btn.textContent = 'VALIDANDO...';
 
   try {
-    const { data: sessionData, error } = await supabase
+    const { data: sessionData, error } = await db
       .from('sessions')
       .select('*')
       .eq('id', code)
@@ -1423,7 +1426,7 @@ async function joinSession() {
     session.roles = sessionData.roles;
 
     // Get currently taken roles
-    const { data: participants } = await supabase
+    const { data: participants } = await db
       .from('participants')
       .select('role_index')
       .eq('session_id', code);
@@ -1474,7 +1477,7 @@ async function enterAsParticipant() {
   btn.textContent = 'CONECTANDO...';
 
   try {
-    const { data, error } = await supabase.from('participants').insert({
+    const { data, error } = await db.from('participants').insert({
       session_id: session.sessionCode,
       role_index: session.currentParticipant.roleIndex,
       role_name: session.currentParticipant.name,
@@ -1557,7 +1560,7 @@ async function enterApp() {
 
 async function loadInjectedEvents() {
   try {
-    const { data } = await supabase
+    const { data } = await db
       .from('events')
       .select('*')
       .eq('session_id', session.sessionCode)
@@ -1569,7 +1572,7 @@ async function loadInjectedEvents() {
 async function updateHeartbeat() {
   if (!session.participantRow) return;
   try {
-    await supabase.from('participants')
+    await db.from('participants')
       .update({ last_seen: new Date().toISOString() })
       .eq('id', session.participantRow.id);
   } catch(e){}
@@ -1579,7 +1582,7 @@ async function updateHeartbeat() {
 // REALTIME SUBSCRIPTIONS
 // ════════════════════════════════════════
 function subscribeToRealtime() {
-  realtimeChannel = supabase
+  realtimeChannel = db
     .channel('session-' + session.sessionCode)
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'events', filter: 'session_id=eq.' + session.sessionCode },
@@ -1692,7 +1695,7 @@ function handleIncomingEvent(event) {
 async function handleParticipantChange() {
   if (!session.isDirector) return;
   try {
-    const { data } = await supabase
+    const { data } = await db
       .from('participants')
       .select('*')
       .eq('session_id', session.sessionCode);
@@ -2008,7 +2011,7 @@ async function sendChatMessage(channel) {
   const senderName = session.isDirector ? 'DIRECTOR' : session.currentParticipant.name;
 
   try {
-    await supabase.from('events').insert({
+    await db.from('events').insert({
       session_id: session.sessionCode,
       channel: channel,
       level: 'blue',
@@ -2195,7 +2198,7 @@ async function injectEvent() {
   if (!title && !body) { showToast('ERROR','Escribe título o mensaje','red'); return; }
 
   try {
-    const { error } = await supabase.from('events').insert({
+    const { error } = await db.from('events').insert({
       session_id: session.sessionCode,
       channel: channel,
       level: level,
@@ -2220,7 +2223,7 @@ async function injectEvent() {
 async function confirmReset() {
   if (!confirm('¿Terminar la sesión? Se eliminarán todos los datos de la sesión actual.')) return;
   try {
-    await supabase.from('sessions').delete().eq('id', session.sessionCode);
+    await db.from('sessions').delete().eq('id', session.sessionCode);
   } catch(e) {}
   await cleanup();
   location.reload();
