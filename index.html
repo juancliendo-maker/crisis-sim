@@ -1857,10 +1857,9 @@ function renderCommsView() {
   const visibleSMS = sc.sms.filter(m => canSeeByTags(m.requiresTags));
   const visibleTW = sc.twitter.filter(m => canSeeByTags(m.requiresTags));
 
-  const channels = [];
-  if (visibleWA.length > 0 || session.isDirector) channels.push('wa');
-  if (visibleTW.length > 0 || session.isDirector) channels.push('tw');
-  if (visibleSMS.length > 0 || session.isDirector) channels.push('sms');
+  // Todos los participantes ven SIEMPRE los 3 canales para poder enviar mensajes
+  // El filtrado por tags solo afecta qué MENSAJES verán, no la presencia del canal
+  const channels = ['wa', 'tw', 'sms'];
 
   view.className = `tab-view cols-${channels.length || 1}` + (activeTab === 'comms' ? ' active' : '');
 
@@ -1999,16 +1998,21 @@ function renderSMS(s) {
 // SEND MESSAGES (sync via Supabase)
 // ════════════════════════════════════════
 async function sendChatMessage(channel) {
-  let inputId, defaultTags;
-  if (channel === 'whatsapp') { inputId = 'wa-input'; defaultTags = session.currentParticipant.tags || []; }
-  else if (channel === 'twitter') { inputId = 'tw-input'; defaultTags = []; }
-  else if (channel === 'sms') { inputId = 'sms-input'; defaultTags = session.currentParticipant.tags || []; }
+  let inputId;
+  if (channel === 'whatsapp') inputId = 'wa-input';
+  else if (channel === 'twitter') inputId = 'tw-input';
+  else if (channel === 'sms') inputId = 'sms-input';
 
   const input = document.getElementById(inputId);
   const text = input.value.trim();
   if (!text) return;
 
   const senderName = session.isDirector ? 'DIRECTOR' : session.currentParticipant.name;
+
+  // Mensajes enviados por los participantes son visibles a todos los demás participantes
+  // (todos los miembros del comité de crisis comparten los canales operacionales).
+  // Esto evita que un mensaje del Defensa quede invisible para el Presidente.
+  const defaultTags = [];
 
   try {
     await db.from('events').insert({
