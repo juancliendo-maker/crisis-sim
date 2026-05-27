@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRISIS SIM v3.0 // PLATAFORMA MULTIUSUARIO</title>
+<title>CRISIS SIM v4.0 // PLATAFORMA MULTIUSUARIO + ARCHIVOS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -872,6 +872,221 @@ body::before {
   color: var(--text-primary); border-radius: 0;
 }
 .leaflet-popup-tip { background: var(--bg-panel); }
+/* ════════ FILE UPLOAD ════════ */
+.file-upload-zone {
+  border: 2px dashed var(--border-bright);
+  background: var(--bg-card);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 12px;
+}
+.file-upload-zone:hover {
+  border-color: var(--accent-amber);
+  background: var(--bg-hover);
+}
+.file-upload-zone.dragover {
+  border-color: var(--accent-amber);
+  background: rgba(251,191,36,0.08);
+  box-shadow: var(--glow-amber);
+}
+.file-upload-zone .upload-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+  display: block;
+}
+.file-upload-zone .upload-text {
+  font-family: var(--font-cond);
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+}
+.file-upload-zone .upload-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.file-upload-zone input[type=file] { display: none; }
+
+.upload-progress {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+.upload-progress .up-name {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+.upload-progress .up-bar {
+  height: 4px;
+  background: var(--bg-deep);
+  margin-top: 6px;
+  position: relative;
+}
+.upload-progress .up-bar-fill {
+  height: 100%;
+  background: var(--accent-amber);
+  width: 0%;
+  transition: width 0.2s;
+}
+
+/* ════════ FILE CARDS in docs ════════ */
+.uploaded-file-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-amber);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.uploaded-file-card:hover { background: var(--bg-hover); border-color: var(--border-bright); }
+.uploaded-file-card .uf-header {
+  display: flex; align-items: center; gap: 10px;
+}
+.uploaded-file-card .uf-icon { font-size: 24px; flex-shrink: 0; }
+.uploaded-file-card .uf-info { flex: 1; min-width: 0; }
+.uploaded-file-card .uf-name {
+  font-family: var(--font-cond); font-size: 13px;
+  font-weight: 600; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.uploaded-file-card .uf-meta {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-secondary); margin-top: 2px;
+}
+.uploaded-file-card .uf-tags {
+  font-family: var(--font-mono); font-size: 8px;
+  color: var(--accent-amber); margin-top: 4px; letter-spacing: 1px;
+}
+.uploaded-file-card .uf-delete {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 22px; height: 22px;
+  font-size: 12px; cursor: pointer; flex-shrink: 0;
+}
+.uploaded-file-card .uf-delete:hover { color: var(--accent-red); border-color: var(--accent-red); }
+
+/* ════════ FILE VIEWER MODAL ════════ */
+.file-viewer-modal {
+  position: fixed; inset: 0;
+  background: rgba(8,12,20,0.92);
+  z-index: 9998;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 40px;
+}
+.file-viewer-modal.show { display: flex; }
+.file-viewer-content {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-bright);
+  border-top: 3px solid var(--accent-cyan);
+  max-width: 90vw; max-height: 90vh;
+  width: 1000px;
+  display: flex; flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.file-viewer-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.file-viewer-header .fv-icon { font-size: 22px; }
+.file-viewer-header .fv-title {
+  font-family: var(--font-cond); font-size: 16px;
+  font-weight: 700; flex: 1;
+}
+.file-viewer-header .fv-close {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 28px; height: 28px; font-size: 16px;
+  cursor: pointer;
+}
+.file-viewer-header .fv-close:hover { color: var(--accent-red); border-color: var(--accent-red); }
+.file-viewer-body {
+  flex: 1; overflow: auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-deep);
+  padding: 0;
+}
+.file-viewer-body img { max-width: 100%; max-height: 80vh; }
+.file-viewer-body iframe { width: 100%; height: 80vh; border: none; background: white; }
+.file-viewer-body video { max-width: 100%; max-height: 80vh; }
+.file-viewer-body audio { width: 80%; max-width: 600px; }
+.file-viewer-body .fv-download {
+  text-align: center; padding: 40px;
+}
+.file-viewer-body .fv-download a {
+  display: inline-block;
+  padding: 14px 28px;
+  background: var(--accent-cyan); color: var(--bg-deep);
+  font-family: var(--font-cond);
+  font-weight: 700; letter-spacing: 2px;
+  text-decoration: none; font-size: 14px;
+  margin-top: 12px;
+}
+
+/* ════════ AVATARS ════════ */
+.avatar-section {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  background: var(--bg-panel);
+  text-align: center;
+}
+.avatar-display {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-cyan);
+  background: var(--bg-card);
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-family: var(--font-cond);
+  font-size: 22px; font-weight: 700;
+  color: var(--accent-cyan);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+}
+.avatar-display img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.avatar-display:hover::after {
+  content: '📷';
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.avatar-label {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-dim); letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* avatars inline in messages */
+.msg-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--bg-deep);
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-family: var(--font-cond);
+  font-size: 10px; font-weight: 700;
+  color: var(--accent-cyan);
+  margin-right: 6px;
+  overflow: hidden;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
 </style>
 </head>
 <body>
@@ -887,7 +1102,7 @@ body::before {
     <div class="sys-label">PLATAFORMA DE SIMULACIÓN ACADÉMICA</div>
     <h1>CRISIS<span>SIM</span></h1>
     <div class="subtitle">GESTIÓN DE CRISIS · RIESGO POLÍTICO · DESASTRES</div>
-    <div class="version">v3.0 · MULTIUSUARIO REALTIME · SUPABASE</div>
+    <div class="version">v4.0 · MULTIUSUARIO · ARCHIVOS · AVATARES</div>
   </div>
   <div class="entry-cards">
     <button class="entry-card director" onclick="goToDirectorSetup()">
@@ -956,6 +1171,18 @@ body::before {
 
 <div class="toast-container" id="toast-container"></div>
 
+<!-- FILE VIEWER MODAL -->
+<div class="file-viewer-modal" id="file-viewer-modal">
+  <div class="file-viewer-content">
+    <div class="file-viewer-header">
+      <div class="fv-icon" id="fv-icon">📄</div>
+      <div class="fv-title" id="fv-title">—</div>
+      <button class="fv-close" onclick="closeFileViewer()">×</button>
+    </div>
+    <div class="file-viewer-body" id="fv-body"></div>
+  </div>
+</div>
+
 <!-- MAIN APP -->
 <div id="app">
   <div class="topbar">
@@ -963,6 +1190,10 @@ body::before {
     <div class="topbar-sep"></div>
     <div class="scenario-badge" id="scenario-badge">—</div>
     <div class="role-badge" id="current-role-badge">—</div>
+    <div class="avatar-display" id="topbar-avatar" onclick="document.getElementById('avatar-upload-input').click()" style="width:32px;height:32px;font-size:11px;display:none">
+      <span id="topbar-avatar-content">—</span>
+    </div>
+    <input type="file" id="avatar-upload-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
     <div class="role-tags" id="current-role-tags"></div>
     <div class="topbar-right">
       <div class="sim-clock">
@@ -1535,8 +1766,9 @@ async function enterApp() {
   session.simSeconds = session.scenario.startSeconds;
   startClock();
 
-  // Load existing injected events
+  // Load existing injected events and files
   await loadInjectedEvents();
+  await loadUploadedFiles();
 
   renderSitrepView();
   renderCommsView();
@@ -1556,6 +1788,8 @@ async function enterApp() {
   showToast('ACCESO CONCEDIDO',
     session.isDirector ? 'Modo Director — visibilidad total' : 'Rol: ' + session.currentParticipant.name,
     'green');
+  
+  setupParticipantAvatar();
 }
 
 async function loadInjectedEvents() {
@@ -1587,6 +1821,14 @@ function subscribeToRealtime() {
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'events', filter: 'session_id=eq.' + session.sessionCode },
       (payload) => handleIncomingEvent(payload.new)
+    )
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'files', filter: 'session_id=eq.' + session.sessionCode },
+      (payload) => handleIncomingFile(payload.new)
+    )
+    .on('postgres_changes',
+      { event: 'DELETE', schema: 'public', table: 'files', filter: 'session_id=eq.' + session.sessionCode },
+      (payload) => handleFileDeleted(payload.old)
     )
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'participants', filter: 'session_id=eq.' + session.sessionCode },
@@ -1704,12 +1946,24 @@ async function handleParticipantChange() {
 }
 
 function updateDirectorRoleStatus(participants) {
-  const connected = new Set(participants.map(p => p.role_index));
+  const byIdx = {};
+  participants.forEach(p => { byIdx[p.role_index] = p; });
   document.querySelectorAll('[data-role-idx]').forEach(el => {
     const idx = parseInt(el.dataset.roleIdx);
     const dot = el.querySelector('.role-online-dot');
+    const p = byIdx[idx];
     if (dot) {
-      dot.className = 'role-online-dot ' + (connected.has(idx) ? 'online' : 'offline');
+      dot.className = 'role-online-dot ' + (p ? 'online' : 'offline');
+    }
+    // Update avatar if exists
+    const avatarEl = el.querySelector('.role-mini-avatar');
+    if (avatarEl) {
+      if (p && p.avatar_url) {
+        avatarEl.innerHTML = `<img src="${p.avatar_url}" alt="">`;
+      } else {
+        const initials = (session.roles[idx].name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+        avatarEl.innerHTML = initials;
+      }
     }
   });
 }
@@ -2036,18 +2290,32 @@ async function sendChatMessage(channel) {
 function renderDocsView() {
   const sc = session.scenario;
   const visible = sc.documents.filter(d => canSeeByTags(d.requiresTags));
+  const visibleFiles = uploadedFiles.filter(canSeeFile);
 
   const sidebar = document.getElementById('docs-sidebar');
-  if (visible.length === 0) {
-    sidebar.innerHTML = `<div class="locked-notice" style="margin:16px"><div class="ln-icon">🔒</div><div class="ln-title">SIN DOCUMENTOS</div><div class="ln-desc">Tu rol no tiene acceso a documentos.</div></div>`;
+  
+  let html = '';
+
+  // Section for uploaded files
+  if (visibleFiles.length > 0 || session.isDirector) {
+    html += `
+      <div class="docs-category">
+        <div class="docs-cat-header">📎 ARCHIVOS SUBIDOS <span class="docs-cat-count">${visibleFiles.length}</span></div>
+        <div style="padding: 8px 12px;" id="participant-files-list"></div>
+      </div>
+    `;
+  }
+
+  if (visible.length === 0 && visibleFiles.length === 0) {
+    sidebar.innerHTML = html + `<div class="locked-notice" style="margin:16px"><div class="ln-icon">🔒</div><div class="ln-title">SIN DOCUMENTOS</div><div class="ln-desc">Tu rol no tiene acceso a documentos.</div></div>`;
     document.getElementById('doc-viewer-content').innerHTML = '';
+    renderFilesList('participant-files-list');
     return;
   }
 
   const groups = { 'SECRETO': [], 'CONFIDENCIAL': [], 'PÚBLICO': [] };
   visible.forEach(d => groups[d.class].push(d));
 
-  let html = '';
   Object.entries(groups).forEach(([clazz, docs]) => {
     if (docs.length === 0) return;
     html += `
@@ -2064,6 +2332,9 @@ function renderDocsView() {
     `;
   });
   sidebar.innerHTML = html;
+
+  // Render uploaded files in their container
+  renderFilesList('participant-files-list');
 
   if (visible.length > 0) showDoc(visible[0].id, sidebar.querySelector('.doc-item'));
 }
@@ -2140,12 +2411,26 @@ function renderDirectorView() {
 
     <div class="facil-panel">
       <div class="facil-panel-header">
-        <div class="facil-panel-title">REGISTRO DE EVENTOS</div>
-        <div class="facil-panel-subtitle">Auditoría de la sesión</div>
+        <div class="facil-panel-title">📎 ARCHIVOS DEL EJERCICIO</div>
+        <div class="facil-panel-subtitle">Subir documentos, imágenes, audio, video — visibles según tags</div>
       </div>
       <div class="facil-content">
-        <button class="control-btn danger" onclick="confirmReset()">↺ TERMINAR Y REINICIAR</button>
-        <div style="margin-top:16px">
+        <div class="file-upload-zone" id="file-drop-zone" onclick="document.getElementById('file-upload-input').click()">
+          <div class="upload-icon">📤</div>
+          <div class="upload-text">SUBIR ARCHIVO</div>
+          <div class="upload-hint">Clic o arrastra aquí · Máx 20 MB · PDF, Word, PPT, imágenes, audio, video</div>
+          <input type="file" id="file-upload-input" multiple onchange="handleFileSelect(this)">
+        </div>
+
+        <div id="upload-progress-list"></div>
+
+        <div style="margin-bottom:8px;font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);letter-spacing:2px">
+          💡 USA EL FORMULARIO IZQUIERDO PARA DEFINIR TAGS DE VISIBILIDAD ANTES DE SUBIR
+        </div>
+
+        <div id="director-files-list"></div>
+
+        <div style="margin-top:20px">
           <div class="panel-section-title" style="margin-bottom:10px">LOG DE INYECCIONES</div>
           <div class="inject-log" id="inject-log">
             <div class="log-entry">
@@ -2154,6 +2439,8 @@ function renderDirectorView() {
             </div>
           </div>
         </div>
+
+        <button class="control-btn danger" style="margin-top:16px" onclick="confirmReset()">↺ TERMINAR Y REINICIAR</button>
       </div>
     </div>
 
@@ -2164,16 +2451,19 @@ function renderDirectorView() {
       </div>
       <div class="facil-content">
         <div class="role-status-grid">
-          ${session.roles.map((r,i) => `
+          ${session.roles.map((r,i) => {
+            const initials = r.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+            return `
             <div class="role-status-item" data-role-idx="${i}">
               <div class="role-online-dot offline"></div>
+              <div class="role-mini-avatar" style="width:28px;height:28px;border-radius:50%;background:var(--bg-deep);border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;font-family:var(--font-cond);font-size:10px;font-weight:700;color:var(--accent-cyan);overflow:hidden;flex-shrink:0">${initials}</div>
               <div style="flex:1">
                 <div class="role-status-name">${r.name}</div>
                 <div style="font-size:9px;color:var(--text-dim);font-family:var(--font-mono);margin-top:2px">${r.tags.join(' · ') || 'sin tags'}</div>
               </div>
               <div class="role-status-meta">R-${String(i+1).padStart(2,'0')}</div>
             </div>
-          `).join('')}
+          `}).join('')}
         </div>
 
         <div style="margin-top:20px">
@@ -2189,6 +2479,10 @@ function renderDirectorView() {
 
   // Initial load of participant status
   handleParticipantChange();
+
+  // Setup file upload drop zone
+  setupDropZone(document.getElementById('file-drop-zone'));
+  renderFilesList('director-files-list');
 }
 
 async function injectEvent() {
@@ -2281,6 +2575,274 @@ function showToast(title, msg, type='cyan') {
   t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${msg}</div>`;
   container.appendChild(t);
   setTimeout(() => t.remove(), 5200);
+}
+
+// ════════════════════════════════════════
+// FILE MANAGEMENT (v4.0)
+// ════════════════════════════════════════
+let uploadedFiles = [];
+
+const FILE_TYPE_ICONS = {
+  pdf: '📕', doc: '📘', docx: '📘', ppt: '📙', pptx: '📙',
+  xls: '📗', xlsx: '📗', txt: '📄',
+  jpg: '🖼', jpeg: '🖼', png: '🖼', gif: '🖼', webp: '🖼',
+  mp4: '🎬', webm: '🎬', mov: '🎬',
+  mp3: '🎵', wav: '🎵', ogg: '🎵', m4a: '🎵',
+  zip: '📦', rar: '📦'
+};
+
+function getFileIcon(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  return FILE_TYPE_ICONS[ext] || '📎';
+}
+
+function getFileCategory(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  if (['jpg','jpeg','png','gif','webp'].includes(ext)) return 'image';
+  if (['mp4','webm','mov'].includes(ext)) return 'video';
+  if (['mp3','wav','ogg','m4a'].includes(ext)) return 'audio';
+  if (ext === 'pdf') return 'pdf';
+  if (['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)) return 'office';
+  if (ext === 'txt') return 'text';
+  return 'other';
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+async function loadUploadedFiles() {
+  try {
+    const { data } = await db
+      .from('files')
+      .select('*')
+      .eq('session_id', session.sessionCode)
+      .order('created_at', { ascending: false });
+    uploadedFiles = data || [];
+  } catch(e) { console.warn('loadFiles', e); uploadedFiles = []; }
+}
+
+async function uploadFile(file) {
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('ARCHIVO MUY GRANDE', 'Máximo 20 MB por archivo', 'red');
+    return;
+  }
+
+  // Get target tags from inject form if visible
+  const targetTags = Array.from(document.querySelectorAll('#inject-tag-targeting .tag-chip.active')).map(c => c.dataset.tag);
+
+  const progressContainer = document.getElementById('upload-progress-list');
+  const progressEl = document.createElement('div');
+  progressEl.className = 'upload-progress';
+  progressEl.innerHTML = `
+    <div class="up-name">${escapeHtml(file.name)} · ${formatFileSize(file.size)}</div>
+    <div class="up-bar"><div class="up-bar-fill" style="width:30%"></div></div>
+  `;
+  if (progressContainer) progressContainer.appendChild(progressEl);
+
+  try {
+    // Sanitize filename - keep extension
+    const ext = file.name.split('.').pop();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 80);
+    const path = `${session.sessionCode}/${Date.now()}_${safeName}`;
+
+    const { error: uploadError } = await db.storage
+      .from('crisis-files')
+      .upload(path, file);
+
+    if (uploadError) throw uploadError;
+
+    if (progressEl) progressEl.querySelector('.up-bar-fill').style.width = '70%';
+
+    const { data: urlData } = db.storage
+      .from('crisis-files')
+      .getPublicUrl(path);
+
+    const publicUrl = urlData.publicUrl;
+
+    // Insert metadata in files table
+    const { error: dbError } = await db.from('files').insert({
+      session_id: session.sessionCode,
+      filename: file.name,
+      file_path: path,
+      file_url: publicUrl,
+      mime_type: file.type || 'application/octet-stream',
+      file_size: file.size,
+      uploaded_by: session.isDirector ? 'DIRECTOR' : session.currentParticipant.name,
+      target_tags: targetTags,
+      classification: 'PÚBLICO'
+    });
+    if (dbError) throw dbError;
+
+    if (progressEl) {
+      progressEl.querySelector('.up-bar-fill').style.width = '100%';
+      setTimeout(() => progressEl.remove(), 1000);
+    }
+    showToast('ARCHIVO SUBIDO', file.name, 'green');
+  } catch (e) {
+    console.error('upload error', e);
+    if (progressEl) progressEl.remove();
+    showToast('ERROR SUBIDA', e.message || 'No se pudo subir', 'red');
+  }
+}
+
+function handleFileSelect(input) {
+  const files = Array.from(input.files);
+  files.forEach(uploadFile);
+  input.value = '';
+}
+
+function setupDropZone(zoneEl) {
+  if (!zoneEl) return;
+  zoneEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zoneEl.classList.add('dragover');
+  });
+  zoneEl.addEventListener('dragleave', () => zoneEl.classList.remove('dragover'));
+  zoneEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zoneEl.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(uploadFile);
+  });
+}
+
+function canSeeFile(file) {
+  return canSeeByTags(file.target_tags || []);
+}
+
+function openFileViewer(fileId) {
+  const file = uploadedFiles.find(f => f.id === fileId);
+  if (!file) return;
+  const modal = document.getElementById('file-viewer-modal');
+  document.getElementById('fv-icon').textContent = getFileIcon(file.filename);
+  document.getElementById('fv-title').textContent = file.filename;
+  const body = document.getElementById('fv-body');
+  const cat = getFileCategory(file.filename);
+
+  if (cat === 'image') {
+    body.innerHTML = `<img src="${file.file_url}" alt="${escapeHtml(file.filename)}">`;
+  } else if (cat === 'video') {
+    body.innerHTML = `<video controls src="${file.file_url}"></video>`;
+  } else if (cat === 'audio') {
+    body.innerHTML = `<audio controls src="${file.file_url}"></audio>`;
+  } else if (cat === 'pdf') {
+    body.innerHTML = `<iframe src="${file.file_url}" title="${escapeHtml(file.filename)}"></iframe>`;
+  } else if (cat === 'office') {
+    // Use Microsoft Office Online Viewer
+    const encodedUrl = encodeURIComponent(file.file_url);
+    body.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}" title="${escapeHtml(file.filename)}"></iframe>`;
+  } else if (cat === 'text') {
+    body.innerHTML = `<iframe src="${file.file_url}" title="${escapeHtml(file.filename)}"></iframe>`;
+  } else {
+    body.innerHTML = `
+      <div class="fv-download">
+        <div style="font-size:48px;margin-bottom:12px">${getFileIcon(file.filename)}</div>
+        <div style="color:var(--text-secondary);margin-bottom:8px">${escapeHtml(file.filename)}</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${formatFileSize(file.file_size)}</div>
+        <a href="${file.file_url}" target="_blank" download="${escapeHtml(file.filename)}">⬇ DESCARGAR ARCHIVO</a>
+      </div>
+    `;
+  }
+  modal.classList.add('show');
+}
+
+function closeFileViewer() {
+  document.getElementById('file-viewer-modal').classList.remove('show');
+  document.getElementById('fv-body').innerHTML = ''; // stop video/audio
+}
+
+async function deleteFile(fileId) {
+  if (!confirm('¿Eliminar este archivo? Esta acción no se puede deshacer.')) return;
+  const file = uploadedFiles.find(f => f.id === fileId);
+  if (!file) return;
+  try {
+    await db.storage.from('crisis-files').remove([file.file_path]);
+    await db.from('files').delete().eq('id', fileId);
+    showToast('ARCHIVO ELIMINADO', file.filename, 'amber');
+  } catch (e) {
+    showToast('ERROR', e.message, 'red');
+  }
+}
+
+function renderFilesList(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const visible = uploadedFiles.filter(canSeeFile);
+  if (visible.length === 0) {
+    container.innerHTML = '<div style="font-size:11px;color:var(--text-dim);padding:10px;text-align:center">Sin archivos subidos para tu rol</div>';
+    return;
+  }
+  container.innerHTML = visible.map(f => `
+    <div class="uploaded-file-card" onclick="openFileViewer(${f.id})">
+      <div class="uf-header">
+        <div class="uf-icon">${getFileIcon(f.filename)}</div>
+        <div class="uf-info">
+          <div class="uf-name">${escapeHtml(f.filename)}</div>
+          <div class="uf-meta">${formatFileSize(f.file_size)} · ${escapeHtml(f.uploaded_by||'—')}</div>
+          ${(f.target_tags && f.target_tags.length > 0) ? `<div class="uf-tags">→ [${f.target_tags.join(', ')}]</div>` : '<div class="uf-tags" style="color:var(--text-dim)">→ PÚBLICO</div>'}
+        </div>
+        ${session.isDirector ? `<button class="uf-delete" onclick="event.stopPropagation();deleteFile(${f.id})" title="Eliminar archivo">×</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function handleIncomingFile(file) {
+  uploadedFiles.unshift(file);
+  // Re-render the files list if visible
+  if (canSeeFile(file)) {
+    renderFilesList('director-files-list');
+    renderFilesList('participant-files-list');
+    if (!session.isDirector) {
+      showToast('NUEVO ARCHIVO', file.filename, 'amber');
+    }
+  }
+}
+
+function handleFileDeleted(file) {
+  uploadedFiles = uploadedFiles.filter(f => f.id !== file.id);
+  renderFilesList('director-files-list');
+  renderFilesList('participant-files-list');
+}
+
+async function uploadAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('IMAGEN MUY GRANDE', 'Máximo 2 MB para avatar', 'red');
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    showToast('NO ES IMAGEN', 'Selecciona una imagen JPG o PNG', 'red');
+    return;
+  }
+  try {
+    const ext = file.name.split('.').pop();
+    const path = `${session.sessionCode}/avatars/${Date.now()}_${session.participantRow.id}.${ext}`;
+    const { error: uploadError } = await db.storage.from('crisis-files').upload(path, file, { upsert: true });
+    if (uploadError) throw uploadError;
+    const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
+    await db.from('participants').update({ avatar_url: urlData.publicUrl }).eq('id', session.participantRow.id);
+    document.getElementById('topbar-avatar-content').innerHTML = `<img src="${urlData.publicUrl}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+    showToast('AVATAR ACTUALIZADO', 'Tu imagen es visible en el ejercicio', 'green');
+  } catch (e) {
+    showToast('ERROR AVATAR', e.message, 'red');
+  }
+  input.value = '';
+}
+
+function setupParticipantAvatar() {
+  if (session.isDirector) return;
+  const av = document.getElementById('topbar-avatar');
+  if (av) {
+    av.style.display = 'inline-flex';
+    const initials = session.currentParticipant.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    document.getElementById('topbar-avatar-content').textContent = initials;
+  }
 }
 
 // ════════════════════════════════════════
