@@ -670,6 +670,19 @@ body::before {
   border: none; font-family: var(--font-cond); font-size: 12px;
   font-weight: 700; letter-spacing: 2px; cursor: pointer;
 }
+.attach-btn {
+  padding: 7px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--accent-amber);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+.attach-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-amber);
+}
 
 #view-docs { display: none; }
 #view-docs.active { display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
@@ -1863,7 +1876,7 @@ function handleIncomingEvent(event) {
     if (feed) {
       const msg = document.createElement('div');
       msg.className = 'wa-msg incoming injected';
-      msg.innerHTML = `<div class="msg-sender">${escapeHtml(event.sender||'—')}</div><div class="msg-text">${escapeHtml(event.body || event.title || '')}</div><div class="msg-time">${timeStr}</div>`;
+      msg.innerHTML = `<div class="msg-sender">${escapeHtml(event.sender||'—')}</div><div class="msg-text">${safeBody(event.body || event.title || '')}</div><div class="msg-time">${timeStr}</div>`;
       feed.appendChild(msg);
       feed.scrollTop = feed.scrollHeight;
     }
@@ -1883,7 +1896,7 @@ function handleIncomingEvent(event) {
             <div class="tweet-handle">@evento</div>
           </div>
         </div>
-        <div class="tweet-text">${escapeHtml(event.body || event.title || '')}</div>
+        <div class="tweet-text">${safeBody(event.body || event.title || '')}</div>
         <div class="tweet-footer"><span class="tweet-time">${timeStr}</span></div>
       `;
       feed.insertBefore(t, feed.firstChild);
@@ -1896,7 +1909,7 @@ function handleIncomingEvent(event) {
     if (feed) {
       const s = document.createElement('div');
       s.className = 'sms-msg injected';
-      s.innerHTML = `<div class="sms-from">${escapeHtml((event.sender||'—').toUpperCase())}</div><div class="sms-text">${escapeHtml(event.body || event.title || '')}</div><div class="sms-meta"><span>${escapeHtml(event.title||'')}</span><span>${timeStr}</span></div>`;
+      s.innerHTML = `<div class="sms-from">${escapeHtml((event.sender||'—').toUpperCase())}</div><div class="sms-text">${safeBody(event.body || event.title || '')}</div><div class="sms-meta"><span>${escapeHtml(event.title||'')}</span><span>${timeStr}</span></div>`;
       feed.appendChild(s);
       feed.scrollTop = feed.scrollHeight;
     }
@@ -2146,6 +2159,8 @@ function renderCommsView() {
           ${visibleWA.map(renderWAMsg).join('')}
         </div>
         <div class="comm-input-area">
+          <button class="attach-btn" onclick="document.getElementById('attach-wa').click()" title="Adjuntar archivo">📎</button>
+          <input type="file" id="attach-wa" style="display:none" onchange="attachAndSend(this, 'whatsapp')">
           <input class="comm-input" id="wa-input" type="text" placeholder="Escribir mensaje...">
           <button class="send-btn" onclick="sendChatMessage('whatsapp')">ENVIAR</button>
         </div>
@@ -2168,6 +2183,8 @@ function renderCommsView() {
           ${visibleTW.map(renderTweet).join('')}
         </div>
         <div class="comm-input-area">
+          <button class="attach-btn" onclick="document.getElementById('attach-tw').click()" title="Adjuntar archivo">📎</button>
+          <input type="file" id="attach-tw" style="display:none" onchange="attachAndSend(this, 'twitter')">
           <input class="comm-input" id="tw-input" type="text" placeholder="Tweet oficial...">
           <button class="send-btn" style="background:var(--accent-blue);color:white" onclick="sendChatMessage('twitter')">PUBLICAR</button>
         </div>
@@ -2190,6 +2207,8 @@ function renderCommsView() {
           ${visibleSMS.map(renderSMS).join('')}
         </div>
         <div class="comm-input-area">
+          <button class="attach-btn" onclick="document.getElementById('attach-sms').click()" title="Adjuntar archivo">📎</button>
+          <input type="file" id="attach-sms" style="display:none" onchange="attachAndSend(this, 'sms')">
           <input class="comm-input" id="sms-input" type="text" placeholder="Responder...">
           <button class="send-btn" style="background:var(--accent-purple);color:white" onclick="sendChatMessage('sms')">ENVIAR</button>
         </div>
@@ -2210,7 +2229,7 @@ function renderCommsView() {
       if (feed) {
         const msg = document.createElement('div');
         msg.className = 'wa-msg incoming injected';
-        msg.innerHTML = `<div class="msg-sender">${escapeHtml(e.sender||'—')}</div><div class="msg-text">${escapeHtml(e.body||e.title||'')}</div><div class="msg-time">${timeStr}</div>`;
+        msg.innerHTML = `<div class="msg-sender">${escapeHtml(e.sender||'—')}</div><div class="msg-text">${safeBody(e.body||e.title||'')}</div><div class="msg-time">${timeStr}</div>`;
         feed.appendChild(msg);
       }
     }
@@ -2219,7 +2238,7 @@ function renderCommsView() {
       if (feed) {
         const t = document.createElement('div');
         t.className = `tweet injected ${e.level==='red'?'urgent':''}`;
-        t.innerHTML = `<div class="tweet-header"><div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div><div class="tweet-meta"><div class="tweet-name">${escapeHtml(e.sender||'—')}</div><div class="tweet-handle">@evento</div></div></div><div class="tweet-text">${escapeHtml(e.body||e.title||'')}</div><div class="tweet-footer"><span class="tweet-time">${timeStr}</span></div>`;
+        t.innerHTML = `<div class="tweet-header"><div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div><div class="tweet-meta"><div class="tweet-name">${escapeHtml(e.sender||'—')}</div><div class="tweet-handle">@evento</div></div></div><div class="tweet-text">${safeBody(e.body||e.title||'')}</div><div class="tweet-footer"><span class="tweet-time">${timeStr}</span></div>`;
         feed.insertBefore(t, feed.firstChild);
       }
     }
@@ -2228,7 +2247,7 @@ function renderCommsView() {
       if (feed) {
         const s = document.createElement('div');
         s.className = 'sms-msg injected';
-        s.innerHTML = `<div class="sms-from">${escapeHtml((e.sender||'—').toUpperCase())}</div><div class="sms-text">${escapeHtml(e.body||e.title||'')}</div><div class="sms-meta"><span>${escapeHtml(e.title||'')}</span><span>${timeStr}</span></div>`;
+        s.innerHTML = `<div class="sms-from">${escapeHtml((e.sender||'—').toUpperCase())}</div><div class="sms-text">${safeBody(e.body||e.title||'')}</div><div class="sms-meta"><span>${escapeHtml(e.title||'')}</span><span>${timeStr}</span></div>`;
         feed.appendChild(s);
       }
     }
@@ -2262,10 +2281,6 @@ async function sendChatMessage(channel) {
   if (!text) return;
 
   const senderName = session.isDirector ? 'DIRECTOR' : session.currentParticipant.name;
-
-  // Mensajes enviados por los participantes son visibles a todos los demás participantes
-  // (todos los miembros del comité de crisis comparten los canales operacionales).
-  // Esto evita que un mensaje del Defensa quede invisible para el Presidente.
   const defaultTags = [];
 
   try {
@@ -2282,6 +2297,76 @@ async function sendChatMessage(channel) {
   } catch (e) {
     showToast('ERROR ENVÍO', e.message, 'red');
   }
+}
+
+// ════════════════════════════════════════
+// Attach file to message (v4.0)
+// Any role (Director or participant) can attach files to any channel
+// ════════════════════════════════════════
+async function attachAndSend(input, channel) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('ARCHIVO MUY GRANDE', 'Máximo 20 MB por archivo', 'red');
+    input.value = '';
+    return;
+  }
+
+  const senderName = session.isDirector ? 'DIRECTOR' : session.currentParticipant.name;
+
+  showToast('SUBIENDO ARCHIVO', file.name, 'amber');
+
+  try {
+    // Upload to storage
+    const ext = file.name.split('.').pop();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 80);
+    const path = `${session.sessionCode}/${Date.now()}_${safeName}`;
+
+    const { error: uploadError } = await db.storage
+      .from('crisis-files')
+      .upload(path, file);
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = db.storage
+      .from('crisis-files')
+      .getPublicUrl(path);
+
+    const publicUrl = urlData.publicUrl;
+
+    // Save in files table (so it also shows in Documents)
+    await db.from('files').insert({
+      session_id: session.sessionCode,
+      filename: file.name,
+      file_path: path,
+      file_url: publicUrl,
+      mime_type: file.type || 'application/octet-stream',
+      file_size: file.size,
+      uploaded_by: senderName,
+      target_tags: [],
+      classification: 'PÚBLICO'
+    });
+
+    // Also broadcast in the chat as a message with attachment
+    const icon = getFileIcon(file.name);
+    const sizeStr = formatFileSize(file.size);
+    const messageBody = `📎 ARCHIVO ADJUNTO: <a href="${publicUrl}" target="_blank" style="color:var(--accent-cyan);text-decoration:underline">${escapeHtml(file.name)}</a> (${sizeStr})`;
+
+    await db.from('events').insert({
+      session_id: session.sessionCode,
+      channel: channel,
+      level: 'amber',
+      sender: senderName,
+      title: 'Archivo adjunto',
+      body: messageBody,
+      target_tags: []
+    });
+
+    showToast('ARCHIVO ENVIADO', file.name + ' → ' + channel.toUpperCase(), 'green');
+  } catch (e) {
+    console.error('attach error', e);
+    showToast('ERROR', e.message || 'No se pudo enviar el archivo', 'red');
+  }
+  input.value = '';
 }
 
 // ════════════════════════════════════════
@@ -2566,6 +2651,17 @@ function stopClock() {
 function escapeHtml(s) {
   if (!s) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// safeBody: allows attachment links (📎 ARCHIVO ADJUNTO format) to render as HTML
+// while still escaping any user text safely
+function safeBody(s) {
+  if (!s) return '';
+  // If it's an attachment message (created by attachAndSend), preserve the link
+  if (s.indexOf('📎 ARCHIVO ADJUNTO:') === 0) {
+    return s; // Already controlled HTML built server-side by attachAndSend
+  }
+  return escapeHtml(s);
 }
 
 function showToast(title, msg, type='cyan') {
