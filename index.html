@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRISIS SIM v4.0 // PLATAFORMA MULTIUSUARIO + ARCHIVOS</title>
+<title>CRISIS SIM v5.0 // PLATAFORMA MULTIUSUARIO + CONVERSACIONES PRIVADAS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -1100,6 +1100,480 @@ body::before {
 }
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
+/* ════════ v5.0 CONVERSATIONS LAYOUT ════════ */
+#view-comms.v5-layout {
+  display: grid !important;
+  grid-template-columns: 280px 1fr !important;
+}
+
+.conv-sidebar {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.conv-section-title {
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.conv-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s;
+  position: relative;
+}
+.conv-item:hover { background: var(--bg-hover); }
+.conv-item.active {
+  background: var(--bg-card);
+  border-left: 3px solid var(--accent-cyan);
+}
+.conv-item.has-unread {
+  background: rgba(56,189,248,0.05);
+}
+
+.conv-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-cond);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.conv-icon img { width: 100%; height: 100%; object-fit: cover; }
+.conv-icon.group { background: rgba(0,200,112,0.15); color: var(--accent-green); }
+.conv-icon.twitter-icon { background: rgba(29,155,240,0.15); color: #60a5fa; }
+.conv-icon.sms-icon { background: rgba(167,139,250,0.15); color: var(--accent-purple); }
+.conv-icon.private { background: var(--bg-deep); border: 1px solid var(--border-bright); color: var(--accent-cyan); }
+.conv-icon.director-icon { background: rgba(251,191,36,0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+
+.conv-icon .online-dot {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  border: 2px solid var(--bg-panel);
+  box-shadow: 0 0 4px var(--accent-green);
+}
+
+.conv-info {
+  flex: 1;
+  min-width: 0;
+}
+.conv-name {
+  font-family: var(--font-cond);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conv-preview {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-badge {
+  background: var(--accent-red);
+  color: white;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* CONVERSATION VIEW */
+.conv-view {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.conv-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.conv-header-info { flex: 1; }
+.conv-header-name {
+  font-family: var(--font-cond);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.conv-header-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.conv-header-status .online-text { color: var(--accent-green); }
+
+.conv-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--text-dim);
+  padding: 40px;
+  text-align: center;
+}
+.conv-empty .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.conv-empty .empty-text {
+  font-family: var(--font-cond);
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+}
+.conv-empty .empty-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  max-width: 320px;
+}
+
+.conv-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-deep);
+}
+
+.conv-msg {
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+.conv-msg.incoming {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
+.conv-msg.outgoing {
+  background: rgba(56,189,248,0.15);
+  border: 1px solid rgba(56,189,248,0.3);
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+.conv-msg.from-director {
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.3);
+}
+.conv-msg.system {
+  background: transparent;
+  border: 1px dashed var(--border);
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  text-align: center;
+}
+
+.conv-msg-sender {
+  font-family: var(--font-cond);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-green);
+  margin-bottom: 3px;
+}
+.conv-msg.outgoing .conv-msg-sender { color: var(--accent-cyan); }
+.conv-msg.from-director .conv-msg-sender { color: var(--accent-amber); }
+
+.conv-msg-routing {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.conv-msg-text { color: var(--text-primary); }
+
+.conv-msg-time {
+  font-size: 9px;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+/* Inline attachments */
+.conv-msg-image {
+  margin-top: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 100%;
+  cursor: pointer;
+}
+.conv-msg-image img {
+  max-width: 100%;
+  max-height: 240px;
+  display: block;
+}
+.conv-msg-audio {
+  margin-top: 4px;
+  width: 100%;
+}
+.conv-msg-audio audio {
+  width: 100%;
+  height: 36px;
+}
+.conv-msg-video {
+  margin-top: 4px;
+  max-width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.conv-msg-video video {
+  max-width: 100%;
+  max-height: 240px;
+  display: block;
+}
+.conv-msg-file {
+  margin-top: 6px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 3px;
+}
+.conv-msg-file:hover { background: rgba(0,0,0,0.35); }
+.conv-msg-file .cf-icon { font-size: 22px; flex-shrink: 0; }
+.conv-msg-file .cf-info { flex: 1; min-width: 0; }
+.conv-msg-file .cf-name {
+  font-family: var(--font-cond);
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--accent-cyan);
+}
+.conv-msg-file .cf-meta {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+/* INPUT AREA v5 */
+.conv-input-area {
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.conv-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.conv-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  border-radius: 4px;
+}
+.conv-input:focus { border-color: var(--accent-cyan); }
+
+.conv-action-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--accent-amber);
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.conv-action-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-amber);
+  transform: scale(1.05);
+}
+.conv-action-btn.recording {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+  color: white;
+  animation: pulse-rec 1s ease-in-out infinite;
+}
+@keyframes pulse-rec {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.7); }
+  50% { box-shadow: 0 0 0 8px rgba(248,113,113,0); }
+}
+
+.conv-send-btn {
+  background: var(--accent-cyan);
+  color: var(--bg-deep);
+  border: none;
+  padding: 8px 18px;
+  font-family: var(--font-cond);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.conv-send-btn:hover { background: #58cdf8; }
+
+/* Recording indicator */
+.recording-bar {
+  background: rgba(248,113,113,0.15);
+  border: 1px solid var(--accent-red);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+}
+.recording-bar.show { display: flex; }
+.recording-bar .rec-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  animation: pulse-rec-dot 1s ease-in-out infinite;
+}
+@keyframes pulse-rec-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.recording-bar .rec-time {
+  font-family: var(--font-mono);
+  color: var(--accent-red);
+  font-size: 13px;
+}
+.recording-bar .rec-cancel {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+/* Camera preview modal */
+.camera-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(8,12,20,0.95);
+  z-index: 9998;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.camera-modal.show { display: flex; }
+.camera-content {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-bright);
+  border-top: 3px solid var(--accent-cyan);
+  padding: 20px;
+  max-width: 90vw;
+}
+.camera-content video {
+  width: 480px;
+  max-width: 100%;
+  background: black;
+  display: block;
+}
+.camera-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+.camera-btn {
+  padding: 10px 20px;
+  font-family: var(--font-cond);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.camera-btn.primary {
+  background: var(--accent-cyan);
+  color: var(--bg-deep);
+  border: none;
+}
+.camera-btn.danger {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+/* DIRECTOR CONV VIEW LABEL */
+.director-conv-label {
+  background: rgba(251,191,36,0.1);
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 4px 10px;
+  text-align: center;
+}
+
 </style>
 </head>
 <body>
@@ -1115,7 +1589,7 @@ body::before {
     <div class="sys-label">PLATAFORMA DE SIMULACIÓN ACADÉMICA</div>
     <h1>CRISIS<span>SIM</span></h1>
     <div class="subtitle">GESTIÓN DE CRISIS · RIESGO POLÍTICO · DESASTRES</div>
-    <div class="version">v4.0 · MULTIUSUARIO · ARCHIVOS · AVATARES</div>
+    <div class="version">v5.0 · CONVERSACIONES PRIVADAS · AUDIO · CÁMARA</div>
   </div>
   <div class="entry-cards">
     <button class="entry-card director" onclick="goToDirectorSetup()">
@@ -1193,6 +1667,18 @@ body::before {
       <button class="fv-close" onclick="closeFileViewer()">×</button>
     </div>
     <div class="file-viewer-body" id="fv-body"></div>
+  </div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div class="camera-modal" id="camera-modal">
+  <div class="camera-content">
+    <video id="camera-video" autoplay playsinline muted></video>
+    <canvas id="camera-canvas" style="display:none"></canvas>
+    <div class="camera-controls">
+      <button class="camera-btn primary" onclick="capturePhoto()">📷 CAPTURAR</button>
+      <button class="camera-btn danger" onclick="closeCamera()">CANCELAR</button>
+    </div>
   </div>
 </div>
 
@@ -1864,61 +2350,39 @@ function subscribeToRealtime() {
 
 function handleIncomingEvent(event) {
   injectedEvents.push(event);
-  // Check if I can see it
-  if (!canSeeByTags(event.target_tags || [])) return;
 
-  // Render based on channel
-  const time = new Date(event.created_at);
-  const timeStr = `${String(time.getHours()).padStart(2,'0')}:${String(time.getMinutes()).padStart(2,'0')}`;
+  // For private channels, check if recipient/sender involves me
+  const myIdx = session.isDirector ? -1 : session.currentParticipant.roleIndex;
+  let isVisibleToMe = false;
 
-  if (event.channel === 'whatsapp') {
-    const feed = document.getElementById('wa-feed');
-    if (feed) {
-      const msg = document.createElement('div');
-      msg.className = 'wa-msg incoming injected';
-      msg.innerHTML = `<div class="msg-sender">${escapeHtml(event.sender||'—')}</div><div class="msg-text">${safeBody(event.body || event.title || '')}</div><div class="msg-time">${timeStr}</div>`;
-      feed.appendChild(msg);
-      feed.scrollTop = feed.scrollHeight;
-    }
-    if (!session.isDirector) showToast('NUEVO MENSAJE', event.sender + ': ' + (event.title || event.body).substring(0,40), 'amber');
+  if (event.channel === 'private') {
+    // Private message: only visible to sender, recipient, and Director
+    isVisibleToMe = session.isDirector ||
+                    event.sender_role_idx === myIdx ||
+                    event.recipient_role_idx === myIdx;
+  } else {
+    // Public group: filter by tags as before
+    isVisibleToMe = canSeeByTags(event.target_tags || []);
   }
 
-  if (event.channel === 'twitter') {
-    const feed = document.getElementById('tw-feed');
-    if (feed) {
-      const t = document.createElement('div');
-      t.className = `tweet injected ${event.level==='red'?'urgent':''}`;
-      t.innerHTML = `
-        <div class="tweet-header">
-          <div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div>
-          <div class="tweet-meta">
-            <div class="tweet-name">${escapeHtml(event.sender||'—')}</div>
-            <div class="tweet-handle">@evento</div>
-          </div>
-        </div>
-        <div class="tweet-text">${safeBody(event.body || event.title || '')}</div>
-        <div class="tweet-footer"><span class="tweet-time">${timeStr}</span></div>
-      `;
-      feed.insertBefore(t, feed.firstChild);
+  if (!isVisibleToMe) return;
+
+  // If the conversations view is currently rendered, re-render the active conversation
+  // to include the new message
+  if (activeConvId) {
+    const messages = getMessagesForConv(activeConvId);
+    const conv = buildConversationList().find(c => c.id === activeConvId);
+    if (conv) {
+      renderConvMessages(messages, conv);
     }
-    if (!session.isDirector) showToast('NUEVO TWEET', event.sender, 'amber');
   }
 
-  if (event.channel === 'sms') {
-    const feed = document.getElementById('sms-feed');
-    if (feed) {
-      const s = document.createElement('div');
-      s.className = 'sms-msg injected';
-      s.innerHTML = `<div class="sms-from">${escapeHtml((event.sender||'—').toUpperCase())}</div><div class="sms-text">${safeBody(event.body || event.title || '')}</div><div class="sms-meta"><span>${escapeHtml(event.title||'')}</span><span>${timeStr}</span></div>`;
-      feed.appendChild(s);
-      feed.scrollTop = feed.scrollHeight;
-    }
-    if (!session.isDirector) showToast('NUEVO SMS', event.sender, 'amber');
-  }
-
+  // Handle TIMELINE channel (legacy - still useful in SITREP view)
   if (event.channel === 'timeline') {
     const zone = document.getElementById('tl-inject-zone');
     if (zone) {
+      const time = new Date(event.created_at);
+      const timeStr = `${String(time.getHours()).padStart(2,'0')}:${String(time.getMinutes()).padStart(2,'0')}`;
       const item = document.createElement('div');
       item.className = 'timeline-item';
       item.innerHTML = `
@@ -1933,14 +2397,39 @@ function handleIncomingEvent(event) {
     }
   }
 
-  // Update log for director
+  // Toast notification for incoming (only if not from me)
+  if (event.sender_role_idx !== myIdx) {
+    let notifTitle = 'NUEVO MENSAJE';
+    if (event.channel === 'private') {
+      if (event.sender_role_idx === -1) notifTitle = '🎯 DEL DIRECTOR';
+      else if (session.isDirector) notifTitle = '👁 MSG PRIVADO';
+      else notifTitle = '💬 PRIVADO';
+    } else if (event.channel === 'twitter') notifTitle = 'NUEVO TWEET';
+    else if (event.channel === 'sms') notifTitle = 'NUEVO SMS';
+    else if (event.channel === 'whatsapp') notifTitle = 'NUEVO WHATSAPP';
+
+    const senderText = event.sender || '—';
+    const previewText = (event.body || event.title || '').substring(0, 50);
+    showToast(notifTitle, senderText + (previewText ? ': ' + previewText : ''), 'amber');
+  }
+
+  // Update log for director (any channel)
   if (session.isDirector) {
     const log = document.getElementById('inject-log');
     if (log) {
+      const time = new Date(event.created_at);
+      const timeStr = `${String(time.getHours()).padStart(2,'0')}:${String(time.getMinutes()).padStart(2,'0')}`;
       const e = document.createElement('div');
       e.className = 'log-entry';
-      const tagInfo = (event.target_tags||[]).length > 0 ? `→ [${event.target_tags.join(',')}]` : '→ PÚBLICO';
-      e.innerHTML = `<div class="log-time">${timeStr}</div><div class="log-msg"><strong>EVENTO</strong> · ${event.channel.toUpperCase()} ${tagInfo}: ${escapeHtml((event.title||event.body||'').substring(0,40))}</div>`;
+      let routing = '';
+      if (event.channel === 'private') {
+        const sName = event.sender_role_idx === -1 ? '🎯' : (session.roles[event.sender_role_idx]?.name || '?');
+        const rName = event.recipient_role_idx === -1 ? '🎯' : (session.roles[event.recipient_role_idx]?.name || '?');
+        routing = `[${sName} → ${rName}]`;
+      } else {
+        routing = (event.target_tags||[]).length > 0 ? `→ [${event.target_tags.join(',')}]` : '→ PÚBLICO';
+      }
+      e.innerHTML = `<div class="log-time">${timeStr}</div><div class="log-msg"><strong>${event.channel.toUpperCase()}</strong> ${routing}: ${escapeHtml((event.title||event.body||'').substring(0,40))}</div>`;
       log.appendChild(e);
       log.scrollTop = log.scrollHeight;
     }
@@ -2113,158 +2602,640 @@ function focusIncident(lat, lng, label) {
 }
 
 // ════════════════════════════════════════
-// COMMS
+// COMMS v5.0 — Conversations system
 // ════════════════════════════════════════
+// State: which conversation is currently selected
+let activeConvId = null; // string: 'group-wa', 'group-tw', 'group-sms', or 'priv-N' where N is role_index, or 'priv-D' for director
+
+// Build the list of conversations the current user can see
+function buildConversationList() {
+  const convs = [];
+
+  // 1. Public groups (everyone sees them)
+  convs.push({ id: 'group-wa', type: 'group', name: 'WhatsApp · Comité Crisis', icon: '💬', iconClass: 'group' });
+  convs.push({ id: 'group-tw', type: 'group', name: 'X / Twitter (Público)', icon: '𝕏', iconClass: 'twitter-icon' });
+  convs.push({ id: 'group-sms', type: 'group', name: 'SMS / Campo', icon: '📲', iconClass: 'sms-icon' });
+
+  // 2. Private conversations
+  if (session.isDirector) {
+    // Director sees ALL pairs of private conversations (between every two roles)
+    // Plus director's own privates with each role
+    for (let i = 0; i < session.roles.length; i++) {
+      convs.push({
+        id: `priv-D-${i}`, type: 'priv-director', name: `🎯 ↔ ${session.roles[i].name}`,
+        icon: session.roles[i].name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(),
+        iconClass: 'private', targetRoleIdx: i
+      });
+    }
+    // Show inter-role privates as monitoring
+    for (let i = 0; i < session.roles.length; i++) {
+      for (let j = i+1; j < session.roles.length; j++) {
+        convs.push({
+          id: `monitor-${i}-${j}`, type: 'monitor',
+          name: `👁 ${session.roles[i].name} ↔ ${session.roles[j].name}`,
+          icon: '👁', iconClass: 'private',
+          rolePair: [i, j]
+        });
+      }
+    }
+  } else {
+    // Participant sees:
+    // - Private with Director
+    // - Private with each other role
+    convs.push({
+      id: 'priv-D', type: 'priv-with-director',
+      name: '🎯 Director', icon: 'D', iconClass: 'director-icon'
+    });
+    session.roles.forEach((role, idx) => {
+      if (idx === session.currentParticipant.roleIndex) return; // Don't list yourself
+      convs.push({
+        id: `priv-${idx}`, type: 'priv-with-role',
+        name: role.name,
+        icon: role.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(),
+        iconClass: 'private',
+        targetRoleIdx: idx
+      });
+    });
+  }
+
+  return convs;
+}
+
+// Filter events that belong to a given conversation
+function getMessagesForConv(convId) {
+  // For groups: events with channel = whatsapp/twitter/sms AND recipient_role_idx IS NULL
+  // For privates: events with recipient_role_idx matching the conversation pair
+
+  if (convId === 'group-wa') {
+    // Group WhatsApp: includes pre-loaded WA messages + events channel=whatsapp without specific recipient
+    const sc = session.scenario;
+    const pre = sc.whatsapp.filter(m => canSeeByTags(m.requiresTags)).map(m => ({
+      _type: 'preloaded-wa', sender: m.sender, body: m.text || '', time: m.time, isSystem: m.type === 'system'
+    }));
+    const live = injectedEvents
+      .filter(e => e.channel === 'whatsapp' && (e.recipient_role_idx === null || e.recipient_role_idx === undefined) && canSeeByTags(e.target_tags||[]))
+      .map(eventToConvMsg);
+    return [...pre, ...live];
+  }
+
+  if (convId === 'group-tw') {
+    const sc = session.scenario;
+    const pre = sc.twitter.filter(t => canSeeByTags(t.requiresTags)).map(t => ({
+      _type: 'preloaded-tw', sender: t.name, handle: t.handle, body: t.text, time: t.time, avatar: t.avatar, avatarBg: t.avatarBg, urgent: t.urgent
+    }));
+    const live = injectedEvents
+      .filter(e => e.channel === 'twitter' && (e.recipient_role_idx === null || e.recipient_role_idx === undefined) && canSeeByTags(e.target_tags||[]))
+      .map(eventToConvMsg);
+    return [...pre, ...live];
+  }
+
+  if (convId === 'group-sms') {
+    const sc = session.scenario;
+    const pre = sc.sms.filter(s => canSeeByTags(s.requiresTags)).map(s => ({
+      _type: 'preloaded-sms', sender: s.from, body: s.text, time: s.time
+    }));
+    const live = injectedEvents
+      .filter(e => e.channel === 'sms' && (e.recipient_role_idx === null || e.recipient_role_idx === undefined) && canSeeByTags(e.target_tags||[]))
+      .map(eventToConvMsg);
+    return [...pre, ...live];
+  }
+
+  // PRIVATE CONVERSATIONS
+  if (convId.startsWith('priv-D-')) {
+    // Director ↔ specific role
+    const targetIdx = parseInt(convId.split('-')[2]);
+    return injectedEvents
+      .filter(e => e.channel === 'private' && (
+        (e.sender_role_idx === -1 && e.recipient_role_idx === targetIdx) ||
+        (e.sender_role_idx === targetIdx && e.recipient_role_idx === -1)
+      ))
+      .map(eventToConvMsg);
+  }
+
+  if (convId === 'priv-D') {
+    // Participant ↔ Director
+    const myIdx = session.currentParticipant.roleIndex;
+    return injectedEvents
+      .filter(e => e.channel === 'private' && (
+        (e.sender_role_idx === -1 && e.recipient_role_idx === myIdx) ||
+        (e.sender_role_idx === myIdx && e.recipient_role_idx === -1)
+      ))
+      .map(eventToConvMsg);
+  }
+
+  if (convId.startsWith('priv-')) {
+    // Participant ↔ other participant
+    const targetIdx = parseInt(convId.split('-')[1]);
+    const myIdx = session.currentParticipant.roleIndex;
+    return injectedEvents
+      .filter(e => e.channel === 'private' && (
+        (e.sender_role_idx === myIdx && e.recipient_role_idx === targetIdx) ||
+        (e.sender_role_idx === targetIdx && e.recipient_role_idx === myIdx)
+      ))
+      .map(eventToConvMsg);
+  }
+
+  if (convId.startsWith('monitor-')) {
+    // Director monitoring a private conversation between two roles
+    const parts = convId.split('-');
+    const a = parseInt(parts[1]);
+    const b = parseInt(parts[2]);
+    return injectedEvents
+      .filter(e => e.channel === 'private' && (
+        (e.sender_role_idx === a && e.recipient_role_idx === b) ||
+        (e.sender_role_idx === b && e.recipient_role_idx === a)
+      ))
+      .map(eventToConvMsg);
+  }
+
+  return [];
+}
+
+function eventToConvMsg(e) {
+  return {
+    _type: 'event',
+    id: e.id,
+    sender: e.sender,
+    sender_role_idx: e.sender_role_idx,
+    recipient_role_idx: e.recipient_role_idx,
+    body: e.body || e.title || '',
+    metadata: e.metadata || {},
+    time: formatTime(e.created_at),
+    raw_time: e.created_at
+  };
+}
+
+function formatTime(ts) {
+  const t = new Date(ts);
+  return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+}
+
 function renderCommsView() {
-  const sc = session.scenario;
   const view = document.getElementById('view-comms');
-  const activeTab = document.querySelector('.nav-tab.active').dataset.tab;
+  view.className = 'tab-view v5-layout active';
+  view.innerHTML = `
+    <div class="conv-sidebar" id="conv-sidebar"></div>
+    <div class="conv-view" id="conv-view">
+      <div class="conv-empty">
+        <div class="empty-icon">💬</div>
+        <div class="empty-text">SELECCIONA UNA CONVERSACIÓN</div>
+        <div class="empty-hint">Elige un canal grupal o una conversación privada del panel izquierdo para comenzar a comunicarte.</div>
+      </div>
+    </div>
+  `;
+  renderConvSidebar();
 
-  const visibleWA = sc.whatsapp.filter(m => canSeeByTags(m.requiresTags));
-  const visibleSMS = sc.sms.filter(m => canSeeByTags(m.requiresTags));
-  const visibleTW = sc.twitter.filter(m => canSeeByTags(m.requiresTags));
+  // Auto-select first conversation
+  if (!activeConvId) {
+    activeConvId = 'group-wa';
+  }
+  openConversation(activeConvId);
+}
 
-  // Todos los participantes ven SIEMPRE los 3 canales para poder enviar mensajes
-  // El filtrado por tags solo afecta qué MENSAJES verán, no la presencia del canal
-  const channels = ['wa', 'tw', 'sms'];
+function renderConvSidebar() {
+  const sidebar = document.getElementById('conv-sidebar');
+  if (!sidebar) return;
+  const convs = buildConversationList();
 
-  view.className = `tab-view cols-${channels.length || 1}` + (activeTab === 'comms' ? ' active' : '');
+  let html = '<div class="conv-section-title">📢 CANALES GRUPALES</div>';
 
-  if (channels.length === 0) {
-    view.innerHTML = `
-      <div class="locked-notice" style="margin:auto">
-        <div class="ln-icon">🔒</div>
-        <div class="ln-title">SIN ACCESO A CANALES</div>
-        <div class="ln-desc">Tu rol no tiene permisos para los canales activos.</div>
-        <div class="ln-tags">TUS TAGS: ${session.currentParticipant.tags.join(' · ') || 'ninguna'}</div>
+  convs.filter(c => c.type === 'group').forEach(c => {
+    html += renderConvItem(c);
+  });
+
+  if (session.isDirector) {
+    html += '<div class="conv-section-title">🎯 PRIVADAS DIRECTOR ↔ ROLES</div>';
+    convs.filter(c => c.type === 'priv-director').forEach(c => {
+      html += renderConvItem(c);
+    });
+
+    if (convs.some(c => c.type === 'monitor')) {
+      html += '<div class="conv-section-title">👁 MONITOREO ROLES ↔ ROLES</div>';
+      convs.filter(c => c.type === 'monitor').forEach(c => {
+        html += renderConvItem(c);
+      });
+    }
+  } else {
+    html += '<div class="conv-section-title">💬 CONVERSACIONES PRIVADAS</div>';
+    convs.filter(c => c.type === 'priv-with-director').forEach(c => {
+      html += renderConvItem(c);
+    });
+    convs.filter(c => c.type === 'priv-with-role').forEach(c => {
+      html += renderConvItem(c);
+    });
+  }
+
+  sidebar.innerHTML = html;
+}
+
+function renderConvItem(c) {
+  const isActive = (c.id === activeConvId) ? ' active' : '';
+  return `
+    <div class="conv-item${isActive}" onclick="openConversation('${c.id}')">
+      <div class="conv-icon ${c.iconClass}">${c.icon}</div>
+      <div class="conv-info">
+        <div class="conv-name">${escapeHtml(c.name)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function openConversation(convId) {
+  activeConvId = convId;
+  // Update sidebar selection
+  document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+  // The renderConvSidebar will re-render
+  renderConvSidebar();
+
+  const messages = getMessagesForConv(convId);
+  const conv = buildConversationList().find(c => c.id === convId);
+  if (!conv) return;
+
+  const view = document.getElementById('conv-view');
+  const isMonitorMode = conv.type === 'monitor';
+  const canSend = !isMonitorMode; // Monitor mode is read-only for Director
+
+  let placeholder = 'Escribir mensaje...';
+  let sendLabel = 'ENVIAR';
+  if (convId === 'group-tw') { placeholder = 'Tweet oficial...'; sendLabel = 'PUBLICAR'; }
+  if (convId === 'group-sms') { placeholder = 'Responder...'; }
+
+  view.innerHTML = `
+    <div class="conv-header">
+      <div class="conv-icon ${conv.iconClass}" style="width:36px;height:36px;font-size:14px">${conv.icon}</div>
+      <div class="conv-header-info">
+        <div class="conv-header-name">${escapeHtml(conv.name)}</div>
+        <div class="conv-header-status">${getConvSubtitle(conv)}</div>
+      </div>
+    </div>
+    ${isMonitorMode ? '<div class="director-conv-label">⚠ MODO MONITOREO · SOLO LECTURA</div>' : ''}
+    <div class="conv-messages" id="conv-messages"></div>
+    ${canSend ? `
+      <div class="conv-input-area">
+        <div class="recording-bar" id="rec-bar">
+          <div class="rec-dot"></div>
+          <div class="rec-time" id="rec-time">00:00</div>
+          <button class="rec-cancel" onclick="cancelRecording()">CANCELAR</button>
+        </div>
+        <div class="conv-input-row">
+          <button class="conv-action-btn" onclick="document.getElementById('conv-attach').click()" title="Adjuntar archivo">📎</button>
+          <input type="file" id="conv-attach" style="display:none" onchange="convAttachFile(this)">
+          <button class="conv-action-btn" id="rec-btn" onclick="toggleRecording()" title="Grabar audio">🎙</button>
+          <button class="conv-action-btn" onclick="openCamera()" title="Foto desde cámara">📷</button>
+          <input class="conv-input" id="conv-msg-input" type="text" placeholder="${placeholder}" onkeydown="if(event.key==='Enter')convSendMessage()">
+          <button class="conv-send-btn" onclick="convSendMessage()">${sendLabel}</button>
+        </div>
+      </div>
+    ` : ''}
+  `;
+
+  renderConvMessages(messages, conv);
+}
+
+function getConvSubtitle(conv) {
+  if (conv.type === 'group') {
+    if (conv.id === 'group-wa') return 'Canal grupal · todos los participantes ven los mensajes';
+    if (conv.id === 'group-tw') return 'Monitor de redes sociales públicas';
+    if (conv.id === 'group-sms') return 'Mensajes operativos desde el campo';
+  }
+  if (conv.type === 'priv-director') return 'Conversación privada · solo Director y este rol';
+  if (conv.type === 'priv-with-director') return 'Línea directa con el Director · privada';
+  if (conv.type === 'priv-with-role') return 'Conversación privada · solo entre tú y este rol';
+  if (conv.type === 'monitor') return 'Observas la conversación privada entre dos roles';
+  return '';
+}
+
+function renderConvMessages(messages, conv) {
+  const container = document.getElementById('conv-messages');
+  if (!container) return;
+
+  if (messages.length === 0) {
+    container.innerHTML = `
+      <div class="conv-empty" style="flex:1">
+        <div class="empty-icon">💭</div>
+        <div class="empty-text">SIN MENSAJES AÚN</div>
+        <div class="empty-hint">Inicia la conversación enviando un mensaje, adjuntando un archivo, grabando audio o tomando una foto.</div>
       </div>
     `;
     return;
   }
 
+  const myIdx = session.isDirector ? -1 : session.currentParticipant.roleIndex;
   let html = '';
+  messages.forEach(m => {
+    if (m.isSystem) {
+      html += `<div class="conv-msg system">— ${escapeHtml(m.sender)} —</div>`;
+      return;
+    }
 
-  if (channels.includes('wa')) {
-    html += `
-      <div class="comm-panel">
-        <div class="comm-header">
-          <div class="comm-icon whatsapp">💬</div>
-          <div>
-            <div class="comm-title" style="color:var(--accent-green)">WHATSAPP</div>
-            <div class="comm-subtitle">Comité de Crisis</div>
-          </div>
-          <div class="comm-count">${visibleWA.length}</div>
-        </div>
-        <div class="messages-feed" id="wa-feed">
-          ${visibleWA.map(renderWAMsg).join('')}
-        </div>
-        <div class="comm-input-area">
-          <button class="attach-btn" onclick="document.getElementById('attach-wa').click()" title="Adjuntar archivo">📎</button>
-          <input type="file" id="attach-wa" style="display:none" onchange="attachAndSend(this, 'whatsapp')">
-          <input class="comm-input" id="wa-input" type="text" placeholder="Escribir mensaje...">
-          <button class="send-btn" onclick="sendChatMessage('whatsapp')">ENVIAR</button>
-        </div>
-      </div>
-    `;
-  }
+    let cls = 'conv-msg';
+    let routingLabel = '';
 
-  if (channels.includes('tw')) {
-    html += `
-      <div class="comm-panel">
-        <div class="comm-header">
-          <div class="comm-icon twitter">𝕏</div>
-          <div>
-            <div class="comm-title" style="color:#1d9bf0">X / TWITTER</div>
-            <div class="comm-subtitle">Monitor público</div>
-          </div>
-          <div class="comm-count">${visibleTW.length}</div>
-        </div>
-        <div class="messages-feed" id="tw-feed">
-          ${visibleTW.map(renderTweet).join('')}
-        </div>
-        <div class="comm-input-area">
-          <button class="attach-btn" onclick="document.getElementById('attach-tw').click()" title="Adjuntar archivo">📎</button>
-          <input type="file" id="attach-tw" style="display:none" onchange="attachAndSend(this, 'twitter')">
-          <input class="comm-input" id="tw-input" type="text" placeholder="Tweet oficial...">
-          <button class="send-btn" style="background:var(--accent-blue);color:white" onclick="sendChatMessage('twitter')">PUBLICAR</button>
-        </div>
-      </div>
-    `;
-  }
+    if (m._type === 'preloaded-wa' || m._type === 'preloaded-sms') {
+      cls += ' incoming';
+    } else if (m._type === 'preloaded-tw') {
+      cls += ' incoming';
+    } else if (m._type === 'event') {
+      const isFromMe = m.sender_role_idx === myIdx;
+      cls += isFromMe ? ' outgoing' : ' incoming';
+      if (m.sender_role_idx === -1 && !session.isDirector) cls += ' from-director';
 
-  if (channels.includes('sms')) {
-    html += `
-      <div class="comm-panel">
-        <div class="comm-header">
-          <div class="comm-icon sms">📲</div>
-          <div>
-            <div class="comm-title" style="color:var(--accent-purple)">SMS / CAMPO</div>
-            <div class="comm-subtitle">Mensajes operativos</div>
-          </div>
-          <div class="comm-count">${visibleSMS.length}</div>
-        </div>
-        <div class="messages-feed" id="sms-feed">
-          ${visibleSMS.map(renderSMS).join('')}
-        </div>
-        <div class="comm-input-area">
-          <button class="attach-btn" onclick="document.getElementById('attach-sms').click()" title="Adjuntar archivo">📎</button>
-          <input type="file" id="attach-sms" style="display:none" onchange="attachAndSend(this, 'sms')">
-          <input class="comm-input" id="sms-input" type="text" placeholder="Responder...">
-          <button class="send-btn" style="background:var(--accent-purple);color:white" onclick="sendChatMessage('sms')">ENVIAR</button>
-        </div>
-      </div>
-    `;
-  }
-
-  view.innerHTML = html;
-
-  // Append events from history
-  injectedEvents.forEach(e => {
-    if (!canSeeByTags(e.target_tags||[])) return;
-    const time = new Date(e.created_at);
-    const timeStr = `${String(time.getHours()).padStart(2,'0')}:${String(time.getMinutes()).padStart(2,'0')}`;
-
-    if (e.channel === 'whatsapp') {
-      const feed = document.getElementById('wa-feed');
-      if (feed) {
-        const msg = document.createElement('div');
-        msg.className = 'wa-msg incoming injected';
-        msg.innerHTML = `<div class="msg-sender">${escapeHtml(e.sender||'—')}</div><div class="msg-text">${safeBody(e.body||e.title||'')}</div><div class="msg-time">${timeStr}</div>`;
-        feed.appendChild(msg);
+      // Build routing label for director's monitor view
+      if (conv.type === 'monitor' || session.isDirector) {
+        const senderName = m.sender_role_idx === -1 ? '🎯 DIRECTOR' : (session.roles[m.sender_role_idx]?.name || m.sender);
+        const recipName = m.recipient_role_idx === -1 ? '🎯 DIRECTOR' : (m.recipient_role_idx !== null && m.recipient_role_idx !== undefined ? (session.roles[m.recipient_role_idx]?.name || '?') : 'GRUPO');
+        routingLabel = `${senderName} → ${recipName}`;
       }
     }
-    if (e.channel === 'twitter') {
-      const feed = document.getElementById('tw-feed');
-      if (feed) {
-        const t = document.createElement('div');
-        t.className = `tweet injected ${e.level==='red'?'urgent':''}`;
-        t.innerHTML = `<div class="tweet-header"><div class="tweet-avatar" style="background:#7d3c98;color:white">EV</div><div class="tweet-meta"><div class="tweet-name">${escapeHtml(e.sender||'—')}</div><div class="tweet-handle">@evento</div></div></div><div class="tweet-text">${safeBody(e.body||e.title||'')}</div><div class="tweet-footer"><span class="tweet-time">${timeStr}</span></div>`;
-        feed.insertBefore(t, feed.firstChild);
-      }
+
+    const attachment = m.metadata && m.metadata.attachment;
+    let attachmentHtml = '';
+    if (attachment) {
+      attachmentHtml = renderAttachment(attachment);
     }
-    if (e.channel === 'sms') {
-      const feed = document.getElementById('sms-feed');
-      if (feed) {
-        const s = document.createElement('div');
-        s.className = 'sms-msg injected';
-        s.innerHTML = `<div class="sms-from">${escapeHtml((e.sender||'—').toUpperCase())}</div><div class="sms-text">${safeBody(e.body||e.title||'')}</div><div class="sms-meta"><span>${escapeHtml(e.title||'')}</span><span>${timeStr}</span></div>`;
-        feed.appendChild(s);
-      }
-    }
+
+    html += `
+      <div class="${cls}">
+        ${routingLabel ? `<div class="conv-msg-routing">${escapeHtml(routingLabel)}</div>` : ''}
+        <div class="conv-msg-sender">${escapeHtml(m.sender || '—')}</div>
+        ${m.body ? `<div class="conv-msg-text">${escapeHtml(m.body)}</div>` : ''}
+        ${attachmentHtml}
+        <div class="conv-msg-time">${escapeHtml(m.time || '')}</div>
+      </div>
+    `;
   });
+
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
 }
 
-function renderWAMsg(m) {
-  if (m.type === 'system') return `<div class="wa-msg system">— ${m.sender} —</div>`;
-  return `<div class="wa-msg incoming"><div class="msg-sender">${m.sender}</div><div class="msg-text">${m.text}</div><div class="msg-time">${m.time}</div></div>`;
+function renderAttachment(att) {
+  if (!att || !att.url) return '';
+  const cat = getFileCategory(att.filename || 'file');
+  const safeFilename = escapeHtml(att.filename || 'archivo');
+
+  if (cat === 'image') {
+    return `<div class="conv-msg-image" onclick="window.open('${att.url}','_blank')">
+      <img src="${att.url}" alt="${safeFilename}">
+    </div>`;
+  }
+  if (cat === 'audio') {
+    return `<div class="conv-msg-audio"><audio controls src="${att.url}"></audio></div>`;
+  }
+  if (cat === 'video') {
+    return `<div class="conv-msg-video"><video controls src="${att.url}"></video></div>`;
+  }
+  return `<a class="conv-msg-file" href="${att.url}" target="_blank">
+    <div class="cf-icon">${getFileIcon(att.filename || 'file')}</div>
+    <div class="cf-info">
+      <div class="cf-name">${safeFilename}</div>
+      <div class="cf-meta">${formatFileSize(att.size || 0)}</div>
+    </div>
+  </a>`;
 }
 
-function renderTweet(t) {
-  return `<div class="tweet ${t.urgent?'urgent':''}"><div class="tweet-header"><div class="tweet-avatar" style="background:${t.avatarBg};color:white">${t.avatar}</div><div class="tweet-meta"><div class="tweet-name">${t.name}</div><div class="tweet-handle">${t.handle}</div></div></div><div class="tweet-text">${t.text}</div><div class="tweet-footer"><span class="tweet-time">${t.time}</span></div></div>`;
+// ════════════════════════════════════════
+// SEND from conversations
+// ════════════════════════════════════════
+async function convSendMessage() {
+  const input = document.getElementById('conv-msg-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  await sendToConversation({ body: text });
+  input.value = '';
 }
 
-function renderSMS(s) {
-  return `<div class="sms-msg"><div class="sms-from">${s.from}</div><div class="sms-text">${s.text}</div><div class="sms-meta"><span>SMS</span><span>${s.time}</span></div></div>`;
+async function sendToConversation(payload) {
+  if (!activeConvId) return;
+
+  const senderName = session.isDirector ? 'DIRECTOR' : session.currentParticipant.name;
+  const senderRoleIdx = session.isDirector ? -1 : session.currentParticipant.roleIndex;
+
+  let channel, recipientRoleIdx;
+
+  if (activeConvId === 'group-wa') { channel = 'whatsapp'; recipientRoleIdx = null; }
+  else if (activeConvId === 'group-tw') { channel = 'twitter'; recipientRoleIdx = null; }
+  else if (activeConvId === 'group-sms') { channel = 'sms'; recipientRoleIdx = null; }
+  else if (activeConvId === 'priv-D') { channel = 'private'; recipientRoleIdx = -1; }
+  else if (activeConvId.startsWith('priv-D-')) {
+    channel = 'private';
+    recipientRoleIdx = parseInt(activeConvId.split('-')[2]);
+  }
+  else if (activeConvId.startsWith('priv-')) {
+    channel = 'private';
+    recipientRoleIdx = parseInt(activeConvId.split('-')[1]);
+  }
+  else if (activeConvId.startsWith('monitor-')) {
+    showToast('SOLO LECTURA', 'No puedes enviar en modo monitoreo', 'amber');
+    return;
+  }
+  else return;
+
+  try {
+    const insertData = {
+      session_id: session.sessionCode,
+      channel: channel,
+      level: 'blue',
+      sender: senderName,
+      sender_role_idx: senderRoleIdx,
+      recipient_role_idx: recipientRoleIdx,
+      title: '',
+      body: payload.body || '',
+      target_tags: [],
+      metadata: payload.metadata || {}
+    };
+    const { error } = await db.from('events').insert(insertData);
+    if (error) throw error;
+  } catch (e) {
+    showToast('ERROR ENVÍO', e.message, 'red');
+    console.error(e);
+  }
+}
+
+async function convAttachFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('ARCHIVO MUY GRANDE', 'Máximo 20 MB', 'red');
+    input.value = '';
+    return;
+  }
+
+  showToast('SUBIENDO', file.name, 'amber');
+  try {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 80);
+    const path = `${session.sessionCode}/conv/${Date.now()}_${safeName}`;
+    const { error: uploadError } = await db.storage.from('crisis-files').upload(path, file);
+    if (uploadError) throw uploadError;
+    const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
+
+    await sendToConversation({
+      body: '',
+      metadata: { attachment: { filename: file.name, url: urlData.publicUrl, size: file.size, type: file.type } }
+    });
+    showToast('ARCHIVO ENVIADO', file.name, 'green');
+  } catch (e) {
+    showToast('ERROR', e.message, 'red');
+  }
+  input.value = '';
+}
+
+// ════════════════════════════════════════
+// AUDIO RECORDING (v5.0)
+// ════════════════════════════════════════
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordingStartTime = null;
+let recordingInterval = null;
+let recordingStream = null;
+
+async function toggleRecording() {
+  const btn = document.getElementById('rec-btn');
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(recordingStream);
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      await uploadRecordedAudio(blob);
+      cleanupRecording();
+    };
+
+    mediaRecorder.start();
+    recordingStartTime = Date.now();
+    document.getElementById('rec-btn').classList.add('recording');
+    document.getElementById('rec-bar').classList.add('show');
+
+    recordingInterval = setInterval(updateRecordingTimer, 200);
+    showToast('🎙 GRABANDO', 'Clic en 🎙 nuevamente para enviar', 'amber');
+  } catch (e) {
+    console.error('Recording error:', e);
+    showToast('ERROR MICRÓFONO', 'No se pudo acceder al micrófono', 'red');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+}
+
+function cancelRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.onstop = null;
+    mediaRecorder.stop();
+  }
+  cleanupRecording();
+}
+
+function cleanupRecording() {
+  if (recordingStream) {
+    recordingStream.getTracks().forEach(t => t.stop());
+    recordingStream = null;
+  }
+  if (recordingInterval) {
+    clearInterval(recordingInterval);
+    recordingInterval = null;
+  }
+  mediaRecorder = null;
+  recordedChunks = [];
+  recordingStartTime = null;
+  const btn = document.getElementById('rec-btn');
+  if (btn) btn.classList.remove('recording');
+  const bar = document.getElementById('rec-bar');
+  if (bar) bar.classList.remove('show');
+}
+
+function updateRecordingTimer() {
+  if (!recordingStartTime) return;
+  const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  const t = document.getElementById('rec-time');
+  if (t) t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+async function uploadRecordedAudio(blob) {
+  showToast('PROCESANDO AUDIO', '', 'amber');
+  try {
+    const path = `${session.sessionCode}/audio/${Date.now()}_voice.webm`;
+    const { error: uploadError } = await db.storage.from('crisis-files').upload(path, blob, { contentType: 'audio/webm' });
+    if (uploadError) throw uploadError;
+    const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
+
+    await sendToConversation({
+      body: '',
+      metadata: { attachment: { filename: 'audio_voz.webm', url: urlData.publicUrl, size: blob.size, type: 'audio/webm' } }
+    });
+    showToast('🎙 AUDIO ENVIADO', '', 'green');
+  } catch (e) {
+    showToast('ERROR', e.message, 'red');
+  }
+}
+
+// ════════════════════════════════════════
+// CAMERA (v5.0)
+// ════════════════════════════════════════
+let cameraStream = null;
+
+async function openCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    const video = document.getElementById('camera-video');
+    video.srcObject = cameraStream;
+    document.getElementById('camera-modal').classList.add('show');
+  } catch (e) {
+    showToast('ERROR CÁMARA', 'No se pudo acceder a la cámara', 'red');
+  }
+}
+
+async function capturePhoto() {
+  const video = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  canvas.toBlob(async (blob) => {
+    closeCamera();
+    showToast('SUBIENDO FOTO', '', 'amber');
+    try {
+      const path = `${session.sessionCode}/photos/${Date.now()}_photo.jpg`;
+      const { error: uploadError } = await db.storage.from('crisis-files').upload(path, blob, { contentType: 'image/jpeg' });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
+
+      await sendToConversation({
+        body: '',
+        metadata: { attachment: { filename: 'foto.jpg', url: urlData.publicUrl, size: blob.size, type: 'image/jpeg' } }
+      });
+      showToast('📷 FOTO ENVIADA', '', 'green');
+    } catch (e) {
+      showToast('ERROR', e.message, 'red');
+    }
+  }, 'image/jpeg', 0.85);
+}
+
+function closeCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  document.getElementById('camera-modal').classList.remove('show');
 }
 
 // ════════════════════════════════════════
