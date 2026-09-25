@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRISIS SIM v5.0 // PLATAFORMA MULTIUSUARIO + CONVERSACIONES PRIVADAS</title>
+<title>CRISIS SIM v5.1 // PLATAFORMA MULTIUSUARIO + CONVERSACIONES PRIVADAS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -1101,9 +1101,10 @@ body::before {
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ════════ v5.0 CONVERSATIONS LAYOUT ════════ */
-#view-comms.v5-layout {
-  display: grid !important;
-  grid-template-columns: 280px 1fr !important;
+/* Solo cuando la pestaña está activa (antes display:grid !important la mostraba siempre) */
+#view-comms.v5-layout.active {
+  display: grid;
+  grid-template-columns: 280px 1fr;
 }
 
 .conv-sidebar {
@@ -1328,6 +1329,7 @@ body::before {
 }
 
 .conv-msg-text { color: var(--text-primary); }
+.conv-msg-text .hashtag { color: var(--accent-blue); }
 
 .conv-msg-time {
   font-size: 9px;
@@ -1339,6 +1341,7 @@ body::before {
 
 /* Inline attachments */
 .conv-msg-image {
+  display: block;
   margin-top: 4px;
   border-radius: 4px;
   overflow: hidden;
@@ -1589,7 +1592,7 @@ body::before {
     <div class="sys-label">PLATAFORMA DE SIMULACIÓN ACADÉMICA</div>
     <h1>CRISIS<span>SIM</span></h1>
     <div class="subtitle">GESTIÓN DE CRISIS · RIESGO POLÍTICO · DESASTRES</div>
-    <div class="version">v5.0 · CONVERSACIONES PRIVADAS · AUDIO · CÁMARA</div>
+    <div class="version">v5.1 · CONVERSACIONES PRIVADAS · AUDIO · CÁMARA</div>
   </div>
   <div class="entry-cards">
     <button class="entry-card director" onclick="goToDirectorSetup()">
@@ -1806,10 +1809,10 @@ const SCENARIOS = {
       {time:'14:00',dot:'red',tagType:'POLITICA',title:'Solicita pronunciamiento FFAA',desc:'Presidente solicita respaldo del Comando Conjunto.'}
     ],
     twitter:[
-      {name:'El Comercio',handle:'@elcomercio_peru',avatar:'EC',avatarBg:'#c0392b',text:'🔴 ÚLTIMA HORA: Moción de vacancia alcanza 87 firmas. Debate 18:00. <span class="hashtag">#VacanciaYa</span>',time:'12:48',urgent:true,requiresTags:[]},
+      {name:'El Comercio',handle:'@elcomercio_peru',avatar:'EC',avatarBg:'#c0392b',text:'🔴 ÚLTIMA HORA: Moción de vacancia alcanza 87 firmas. Debate 18:00. #VacanciaYa',time:'12:48',urgent:true,requiresTags:[]},
       {name:'Caretas',handle:'@caretas',avatar:'CT',avatarBg:'#1a5276',text:'Renuncia ministro Justicia. "Irreconciliables diferencias" con presidente.',time:'13:14',requiresTags:[]},
       {name:'Patricia del Río',handle:'@patydelrio',avatar:'PR',avatarBg:'#7d3c98',text:'El presidente está aislado. Su propio gabinete lo abandona.',time:'13:42',requiresTags:[]},
-      {name:'BBC Mundo',handle:'@bbcmundo',avatar:'BBC',avatarBg:'#1a3a5c',text:'Peru president faces impeachment. <span class="hashtag">#Peru</span>',time:'14:01',urgent:true,requiresTags:[]},
+      {name:'BBC Mundo',handle:'@bbcmundo',avatar:'BBC',avatarBg:'#1a3a5c',text:'Peru president faces impeachment. #Peru',time:'14:01',urgent:true,requiresTags:[]},
       {name:'Embajador EE.UU.',handle:'@USAmbPeru',avatar:'US',avatarBg:'#1a3a5c',text:'EE.UU. confía en las instituciones democráticas del Perú.',time:'14:12',requiresTags:['DIPLOMATICO']}
     ],
     whatsapp:[
@@ -1869,7 +1872,7 @@ const SCENARIOS = {
       {time:'10:30',dot:'red',tagType:'INTERIOR',title:'Segundo punto: Capacmarca',desc:'Comunidades Cusco se suman.'}
     ],
     twitter:[
-      {name:'Diario Correo',handle:'@diariocorreo',avatar:'DC',avatarBg:'#c0392b',text:'Comunidades Cotabambas bloquean corredor. <span class="hashtag">#LasBambas</span>',time:'08:12',urgent:true,requiresTags:[]},
+      {name:'Diario Correo',handle:'@diariocorreo',avatar:'DC',avatarBg:'#c0392b',text:'Comunidades Cotabambas bloquean corredor. #LasBambas',time:'08:12',urgent:true,requiresTags:[]},
       {name:'Líder Comunal',handle:'@apurimac_resiste',avatar:'AR',avatarBg:'#117a65',text:'No es capricho. Es nuestra agua, nuestra tierra. 12 años esperando.',time:'08:45',requiresTags:[]},
       {name:'CONFIEP',handle:'@confiep_peru',avatar:'CP',avatarBg:'#1a3a5c',text:'Otro bloqueo. Perú pierde competitividad.',time:'09:20',requiresTags:[]},
       {name:'Defensoría',handle:'@DefensoriaPeru',avatar:'DP',avatarBg:'#7d3c98',text:'Exhortamos a las partes a dialogar de buena fe.',time:'09:35',requiresTags:[]},
@@ -1964,8 +1967,12 @@ async function cleanup() {
   }
   if (session.participantRow && session.participantRow.id) {
     try {
-      await db.from('participants').delete().eq('id', session.participantRow.id);
-    } catch(e) { console.warn('cleanup', e); }
+      const { error } = await db.from('participants').delete().eq('id', session.participantRow.id);
+      if (error) throw error;
+    } catch(e) {
+      console.warn('cleanup', e);
+      showToast('AVISO', 'No se pudo liberar el rol en el servidor: ' + (e.message || e), 'red');
+    }
   }
 }
 
@@ -2043,7 +2050,7 @@ function renderRoleBuilder() {
     row.className = 'role-row';
     row.innerHTML = `
       <div class="role-num">ROL-${String(idx+1).padStart(2,'0')}</div>
-      <input type="text" value="${role.name}" placeholder="Nombre del rol" onchange="updateRoleName(${idx}, this.value)">
+      <input type="text" value="${escapeHtml(role.name)}" placeholder="Nombre del rol" onchange="updateRoleName(${idx}, this.value)">
       <div class="tag-selector">
         ${Object.keys(ACCESS_TAGS).map(key => `
           <span class="tag-chip ${role.tags.includes(key) ? 'active' : ''}"
@@ -2186,7 +2193,7 @@ function renderParticipantRoles() {
     if (!taken) btn.onclick = () => selectParticipantRole(idx, btn);
     btn.innerHTML = `
       <div class="pr-num">ROL-${String(idx+1).padStart(2,'0')}</div>
-      <div class="pr-name">${role.name}</div>
+      <div class="pr-name">${escapeHtml(role.name)}</div>
       <div class="pr-status">● ${taken ? 'OCUPADO' : 'DISPONIBLE'}</div>
     `;
     container.appendChild(btn);
@@ -2255,7 +2262,7 @@ async function enterApp() {
     tagsEl.innerHTML = '<span class="role-tag-mini" style="background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fbbf24">VISIBILIDAD TOTAL</span>';
   } else {
     session.currentParticipant.tags.forEach(t => {
-      tagsEl.innerHTML += `<span class="role-tag-mini">${t}</span>`;
+      tagsEl.innerHTML += `<span class="role-tag-mini">${escapeHtml(t)}</span>`;
     });
   }
 
@@ -2387,7 +2394,7 @@ function handleIncomingEvent(event) {
       item.className = 'timeline-item';
       item.innerHTML = `
         <div class="tl-time">${timeStr}</div>
-        <div class="tl-dot ${event.level||'amber'}"></div>
+        <div class="tl-dot ${safeLevel(event.level)}"></div>
         <div class="tl-content">
           <div class="tl-title">${escapeHtml(event.title||'')}</div>
           <div class="tl-desc">${escapeHtml(event.body||'')}</div>
@@ -2429,7 +2436,7 @@ function handleIncomingEvent(event) {
       } else {
         routing = (event.target_tags||[]).length > 0 ? `→ [${event.target_tags.join(',')}]` : '→ PÚBLICO';
       }
-      e.innerHTML = `<div class="log-time">${timeStr}</div><div class="log-msg"><strong>${event.channel.toUpperCase()}</strong> ${routing}: ${escapeHtml((event.title||event.body||'').substring(0,40))}</div>`;
+      e.innerHTML = `<div class="log-time">${timeStr}</div><div class="log-msg"><strong>${escapeHtml(String(event.channel||'').toUpperCase())}</strong> ${escapeHtml(routing)}: ${escapeHtml((event.title||event.body||'').substring(0,40))}</div>`;
       log.appendChild(e);
       log.scrollTop = log.scrollHeight;
     }
@@ -2460,11 +2467,11 @@ function updateDirectorRoleStatus(participants) {
     // Update avatar if exists
     const avatarEl = el.querySelector('.role-mini-avatar');
     if (avatarEl) {
-      if (p && p.avatar_url) {
-        avatarEl.innerHTML = `<img src="${p.avatar_url}" alt="">`;
+      const avatarUrl = p ? safeUrl(p.avatar_url) : '';
+      if (avatarUrl) {
+        avatarEl.innerHTML = `<img src="${escapeHtml(avatarUrl)}" alt="">`;
       } else {
-        const initials = (session.roles[idx].name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-        avatarEl.innerHTML = initials;
+        avatarEl.textContent = getInitials(session.roles[idx]?.name);
       }
     }
   });
@@ -2544,7 +2551,7 @@ function renderSitrepView() {
       item.className = 'timeline-item';
       item.innerHTML = `
         <div class="tl-time">${timeStr}</div>
-        <div class="tl-dot ${e.level||'amber'}"></div>
+        <div class="tl-dot ${safeLevel(e.level)}"></div>
         <div class="tl-content">
           <div class="tl-title">${escapeHtml(e.title||'')}</div>
           <div class="tl-desc">${escapeHtml(e.body||'')}</div>
@@ -2772,7 +2779,8 @@ function formatTime(ts) {
 
 function renderCommsView() {
   const view = document.getElementById('view-comms');
-  view.className = 'tab-view v5-layout active';
+  // No tocar 'active': lo gestiona switchTab
+  view.classList.add('v5-layout');
   view.innerHTML = `
     <div class="conv-sidebar" id="conv-sidebar"></div>
     <div class="conv-view" id="conv-view">
@@ -2832,7 +2840,7 @@ function renderConvItem(c) {
   const isActive = (c.id === activeConvId) ? ' active' : '';
   return `
     <div class="conv-item${isActive}" onclick="openConversation('${c.id}')">
-      <div class="conv-icon ${c.iconClass}">${c.icon}</div>
+      <div class="conv-icon ${c.iconClass}">${escapeHtml(c.icon)}</div>
       <div class="conv-info">
         <div class="conv-name">${escapeHtml(c.name)}</div>
       </div>
@@ -2862,7 +2870,7 @@ function openConversation(convId) {
 
   view.innerHTML = `
     <div class="conv-header">
-      <div class="conv-icon ${conv.iconClass}" style="width:36px;height:36px;font-size:14px">${conv.icon}</div>
+      <div class="conv-icon ${conv.iconClass}" style="width:36px;height:36px;font-size:14px">${escapeHtml(conv.icon)}</div>
       <div class="conv-header-info">
         <div class="conv-header-name">${escapeHtml(conv.name)}</div>
         <div class="conv-header-status">${getConvSubtitle(conv)}</div>
@@ -2958,7 +2966,7 @@ function renderConvMessages(messages, conv) {
       <div class="${cls}">
         ${routingLabel ? `<div class="conv-msg-routing">${escapeHtml(routingLabel)}</div>` : ''}
         <div class="conv-msg-sender">${escapeHtml(m.sender || '—')}</div>
-        ${m.body ? `<div class="conv-msg-text">${escapeHtml(m.body)}</div>` : ''}
+        ${m.body ? `<div class="conv-msg-text">${conv.id === 'group-tw' ? renderTweetText(m.body) : escapeHtml(m.body)}</div>` : ''}
         ${attachmentHtml}
         <div class="conv-msg-time">${escapeHtml(m.time || '')}</div>
       </div>
@@ -2970,26 +2978,29 @@ function renderConvMessages(messages, conv) {
 }
 
 function renderAttachment(att) {
-  if (!att || !att.url) return '';
-  const cat = getFileCategory(att.filename || 'file');
+  if (!att) return '';
+  const url = safeUrl(att.url);
+  if (!url) return '';
+  const safeHref = escapeHtml(url);
+  const cat = getFileCategory(att.filename || 'file', att.type);
   const safeFilename = escapeHtml(att.filename || 'archivo');
 
   if (cat === 'image') {
-    return `<div class="conv-msg-image" onclick="window.open('${att.url}','_blank')">
-      <img src="${att.url}" alt="${safeFilename}">
-    </div>`;
+    return `<a class="conv-msg-image" href="${safeHref}" target="_blank" rel="noopener noreferrer">
+      <img src="${safeHref}" alt="${safeFilename}">
+    </a>`;
   }
   if (cat === 'audio') {
-    return `<div class="conv-msg-audio"><audio controls src="${att.url}"></audio></div>`;
+    return `<div class="conv-msg-audio"><audio controls preload="metadata" src="${safeHref}"></audio></div>`;
   }
   if (cat === 'video') {
-    return `<div class="conv-msg-video"><video controls src="${att.url}"></video></div>`;
+    return `<div class="conv-msg-video"><video controls playsinline src="${safeHref}"></video></div>`;
   }
-  return `<a class="conv-msg-file" href="${att.url}" target="_blank">
+  return `<a class="conv-msg-file" href="${safeHref}" target="_blank" rel="noopener noreferrer">
     <div class="cf-icon">${getFileIcon(att.filename || 'file')}</div>
     <div class="cf-info">
       <div class="cf-name">${safeFilename}</div>
-      <div class="cf-meta">${formatFileSize(att.size || 0)}</div>
+      <div class="cf-meta">${formatFileSize(Number(att.size) || 0)}</div>
     </div>
   </a>`;
 }
@@ -3002,12 +3013,14 @@ async function convSendMessage() {
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
-  await sendToConversation({ body: text });
-  input.value = '';
+  const ok = await sendToConversation({ body: text });
+  // Solo se limpia si se envió; si falla, el texto queda para reintentar
+  if (ok) input.value = '';
 }
 
+// Devuelve true si el evento se insertó; false (y avisa al usuario) si no
 async function sendToConversation(payload) {
-  if (!activeConvId) return;
+  if (!activeConvId) return false;
 
   const senderName = session.isDirector ? 'DIRECTOR' : session.currentParticipant.name;
   const senderRoleIdx = session.isDirector ? -1 : session.currentParticipant.roleIndex;
@@ -3028,9 +3041,9 @@ async function sendToConversation(payload) {
   }
   else if (activeConvId.startsWith('monitor-')) {
     showToast('SOLO LECTURA', 'No puedes enviar en modo monitoreo', 'amber');
-    return;
+    return false;
   }
-  else return;
+  else return false;
 
   try {
     const insertData = {
@@ -3047,9 +3060,11 @@ async function sendToConversation(payload) {
     };
     const { error } = await db.from('events').insert(insertData);
     if (error) throw error;
+    return true;
   } catch (e) {
-    showToast('ERROR ENVÍO', e.message, 'red');
+    showToast('ERROR ENVÍO', 'No se envió el mensaje: ' + (e.message || e), 'red');
     console.error(e);
+    return false;
   }
 }
 
@@ -3070,13 +3085,13 @@ async function convAttachFile(input) {
     if (uploadError) throw uploadError;
     const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
 
-    await sendToConversation({
+    const ok = await sendToConversation({
       body: '',
       metadata: { attachment: { filename: file.name, url: urlData.publicUrl, size: file.size, type: file.type } }
     });
-    showToast('ARCHIVO ENVIADO', file.name, 'green');
+    if (ok) showToast('ARCHIVO ENVIADO', file.name, 'green');
   } catch (e) {
-    showToast('ERROR', e.message, 'red');
+    showToast('ERROR ARCHIVO', 'No se pudo subir ' + file.name + ': ' + (e.message || e), 'red');
   }
   input.value = '';
 }
@@ -3103,15 +3118,21 @@ async function startRecording() {
   try {
     recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     recordedChunks = [];
-    mediaRecorder = new MediaRecorder(recordingStream);
+    // Chrome/Firefox graban webm/ogg; Safari (iOS/iPad) graba mp4/aac
+    const preferred = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/aac', 'audio/ogg;codecs=opus']
+      .find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t));
+    mediaRecorder = preferred ? new MediaRecorder(recordingStream, { mimeType: preferred }) : new MediaRecorder(recordingStream);
+    const rec = mediaRecorder;
 
-    mediaRecorder.ondataavailable = (e) => {
+    rec.ondataavailable = (e) => {
       if (e.data.size > 0) recordedChunks.push(e.data);
     };
 
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-      await uploadRecordedAudio(blob);
+    rec.onstop = async () => {
+      // Tipo real que usó el navegador
+      const mime = rec.mimeType || (recordedChunks[0] && recordedChunks[0].type) || preferred || 'audio/webm';
+      const blob = new Blob(recordedChunks, { type: mime });
+      await uploadRecordedAudio(blob, mime);
       cleanupRecording();
     };
 
@@ -3169,21 +3190,36 @@ function updateRecordingTimer() {
   if (t) t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-async function uploadRecordedAudio(blob) {
+// 'audio/mp4;codecs=mp4a.40.2' → { contentType: 'audio/mp4', ext: 'm4a' }
+function audioFormatFromMime(mime) {
+  const base = String(mime || '').split(';')[0].trim().toLowerCase();
+  if (base === 'audio/mp4' || base === 'audio/x-m4a' || base === 'audio/aac') return { contentType: 'audio/mp4', ext: 'm4a' };
+  if (base === 'audio/ogg') return { contentType: 'audio/ogg', ext: 'ogg' };
+  if (base === 'audio/mpeg') return { contentType: 'audio/mpeg', ext: 'mp3' };
+  if (base === 'video/mp4') return { contentType: 'audio/mp4', ext: 'm4a' };
+  return { contentType: 'audio/webm', ext: 'webm' };
+}
+
+async function uploadRecordedAudio(blob, mime) {
+  if (!blob || blob.size === 0) {
+    showToast('ERROR AUDIO', 'La grabación está vacía. No se envió.', 'red');
+    return;
+  }
+  const fmt = audioFormatFromMime(mime || blob.type);
   showToast('PROCESANDO AUDIO', '', 'amber');
   try {
-    const path = `${session.sessionCode}/audio/${Date.now()}_voice.webm`;
-    const { error: uploadError } = await db.storage.from('crisis-files').upload(path, blob, { contentType: 'audio/webm' });
+    const path = `${session.sessionCode}/audio/${Date.now()}_voice.${fmt.ext}`;
+    const { error: uploadError } = await db.storage.from('crisis-files').upload(path, blob, { contentType: fmt.contentType });
     if (uploadError) throw uploadError;
     const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
 
-    await sendToConversation({
+    const ok = await sendToConversation({
       body: '',
-      metadata: { attachment: { filename: 'audio_voz.webm', url: urlData.publicUrl, size: blob.size, type: 'audio/webm' } }
+      metadata: { attachment: { filename: `audio_voz.${fmt.ext}`, url: urlData.publicUrl, size: blob.size, type: fmt.contentType } }
     });
-    showToast('🎙 AUDIO ENVIADO', '', 'green');
+    if (ok) showToast('🎙 AUDIO ENVIADO', '', 'green');
   } catch (e) {
-    showToast('ERROR', e.message, 'red');
+    showToast('ERROR AUDIO', 'No se pudo subir el audio: ' + (e.message || e), 'red');
   }
 }
 
@@ -3212,6 +3248,10 @@ async function capturePhoto() {
 
   canvas.toBlob(async (blob) => {
     closeCamera();
+    if (!blob) {
+      showToast('ERROR FOTO', 'No se pudo capturar la imagen. No se envió.', 'red');
+      return;
+    }
     showToast('SUBIENDO FOTO', '', 'amber');
     try {
       const path = `${session.sessionCode}/photos/${Date.now()}_photo.jpg`;
@@ -3219,13 +3259,13 @@ async function capturePhoto() {
       if (uploadError) throw uploadError;
       const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
 
-      await sendToConversation({
+      const ok = await sendToConversation({
         body: '',
         metadata: { attachment: { filename: 'foto.jpg', url: urlData.publicUrl, size: blob.size, type: 'image/jpeg' } }
       });
-      showToast('📷 FOTO ENVIADA', '', 'green');
+      if (ok) showToast('📷 FOTO ENVIADA', '', 'green');
     } catch (e) {
-      showToast('ERROR', e.message, 'red');
+      showToast('ERROR FOTO', 'No se pudo subir la foto: ' + (e.message || e), 'red');
     }
   }, 'image/jpeg', 0.85);
 }
@@ -3508,14 +3548,14 @@ function renderDirectorView() {
       <div class="facil-content">
         <div class="role-status-grid">
           ${session.roles.map((r,i) => {
-            const initials = r.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+            const initials = escapeHtml(getInitials(r.name));
             return `
             <div class="role-status-item" data-role-idx="${i}">
               <div class="role-online-dot offline"></div>
               <div class="role-mini-avatar" style="width:28px;height:28px;border-radius:50%;background:var(--bg-deep);border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;font-family:var(--font-cond);font-size:10px;font-weight:700;color:var(--accent-cyan);overflow:hidden;flex-shrink:0">${initials}</div>
               <div style="flex:1">
-                <div class="role-status-name">${r.name}</div>
-                <div style="font-size:9px;color:var(--text-dim);font-family:var(--font-mono);margin-top:2px">${r.tags.join(' · ') || 'sin tags'}</div>
+                <div class="role-status-name">${escapeHtml(r.name)}</div>
+                <div style="font-size:9px;color:var(--text-dim);font-family:var(--font-mono);margin-top:2px">${escapeHtml((r.tags || []).join(' · ')) || 'sin tags'}</div>
               </div>
               <div class="role-status-meta">R-${String(i+1).padStart(2,'0')}</div>
             </div>
@@ -3526,7 +3566,7 @@ function renderDirectorView() {
           <div class="panel-section-title" style="margin-bottom:10px">CÓDIGO DE SESIÓN</div>
           <div class="session-code-display">
             <div class="sc-label">COMPARTIR CON PARTICIPANTES</div>
-            <div class="sc-code">${session.sessionCode}</div>
+            <div class="sc-code">${escapeHtml(session.sessionCode)}</div>
           </div>
         </div>
       </div>
@@ -3557,6 +3597,7 @@ async function injectEvent() {
       channel: channel,
       level: level,
       sender: sender,
+      sender_role_idx: -1, // Director: evita que reciba toast de su propia inyección
       title: title,
       body: body,
       target_tags: targetTags
@@ -3570,15 +3611,20 @@ async function injectEvent() {
 
     showToast('EVENTO INYECTADO', 'Sincronizado a participantes', 'amber');
   } catch (e) {
-    showToast('ERROR', e.message, 'red');
+    showToast('ERROR INYECCIÓN', 'El evento NO se inyectó: ' + (e.message || e), 'red');
   }
 }
 
 async function confirmReset() {
   if (!confirm('¿Terminar la sesión? Se eliminarán todos los datos de la sesión actual.')) return;
   try {
-    await db.from('sessions').delete().eq('id', session.sessionCode);
-  } catch(e) {}
+    const { error } = await db.from('sessions').delete().eq('id', session.sessionCode);
+    if (error) throw error;
+  } catch(e) {
+    // No recargar: el Director seguiría sin panel y la sesión quedaría viva
+    showToast('ERROR AL TERMINAR', 'La sesión NO se eliminó: ' + (e.message || e), 'red');
+    return;
+  }
   await cleanup();
   location.reload();
 }
@@ -3620,8 +3666,31 @@ function stopClock() {
 // UTILS
 // ════════════════════════════════════════
 function escapeHtml(s) {
-  if (!s) return '';
+  if (s === null || s === undefined) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Solo acepta URLs https:// (adjuntos, avatares, archivos). Cualquier otra cosa → ''
+function safeUrl(u) {
+  if (typeof u !== 'string') return '';
+  const s = u.trim();
+  return /^https:\/\//i.test(s) ? s : '';
+}
+
+// Nivel de urgencia: solo valores conocidos (se usa como clase CSS)
+function safeLevel(l) {
+  return ['red','amber','blue','green'].includes(l) ? l : 'amber';
+}
+
+// Iniciales de un nombre (texto plano, escapar al insertar)
+function getInitials(name) {
+  return String(name || '?').split(' ').filter(Boolean).map(w => w[0]).slice(0,2).join('').toUpperCase();
+}
+
+// Texto de tweet: se escapa primero y luego se resaltan los #hashtags.
+// El lookbehind evita tocar entidades como &#39; generadas por escapeHtml.
+function renderTweetText(s) {
+  return escapeHtml(s).replace(/(^|[^&\p{L}\p{N}_])#([\p{L}\p{N}_]+)/gu, '$1<span class="hashtag">#$2</span>');
 }
 
 // safeBody: allows attachment links (📎 ARCHIVO ADJUNTO format) to render as HTML
@@ -3639,7 +3708,15 @@ function showToast(title, msg, type='cyan') {
   const container = document.getElementById('toast-container');
   const t = document.createElement('div');
   t.className = `toast ${type==='red'?'red':type==='amber'?'amber':type==='green'?'green':''}`;
-  t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${msg}</div>`;
+  // textContent: title/msg pueden venir de la BD (remitente, cuerpo, nombre de archivo)
+  const tt = document.createElement('div');
+  tt.className = 'toast-title';
+  tt.textContent = title == null ? '' : String(title);
+  const tb = document.createElement('div');
+  tb.className = 'toast-body';
+  tb.textContent = msg == null ? '' : String(msg);
+  t.appendChild(tt);
+  t.appendChild(tb);
   container.appendChild(t);
   setTimeout(() => t.remove(), 5200);
 }
@@ -3663,7 +3740,12 @@ function getFileIcon(filename) {
   return FILE_TYPE_ICONS[ext] || '📎';
 }
 
-function getFileCategory(filename) {
+function getFileCategory(filename, mimeType) {
+  // El tipo MIME manda cuando existe (p. ej. una nota de voz .webm es audio, no video)
+  const mt = String(mimeType || '').toLowerCase();
+  if (mt.startsWith('audio/')) return 'audio';
+  if (mt.startsWith('video/')) return 'video';
+  if (mt.startsWith('image/')) return 'image';
   const ext = filename.split('.').pop().toLowerCase();
   if (['jpg','jpeg','png','gif','webp'].includes(ext)) return 'image';
   if (['mp4','webm','mov'].includes(ext)) return 'video';
@@ -3788,29 +3870,33 @@ function openFileViewer(fileId) {
   document.getElementById('fv-icon').textContent = getFileIcon(file.filename);
   document.getElementById('fv-title').textContent = file.filename;
   const body = document.getElementById('fv-body');
-  const cat = getFileCategory(file.filename);
+  const cat = getFileCategory(file.filename, file.mime_type);
+  const url = safeUrl(file.file_url);
+  const src = escapeHtml(url);
 
-  if (cat === 'image') {
-    body.innerHTML = `<img src="${file.file_url}" alt="${escapeHtml(file.filename)}">`;
+  if (!url) {
+    body.innerHTML = '<div class="fv-download"><div style="color:var(--text-secondary)">Enlace de archivo no válido (se requiere https://)</div></div>';
+  } else if (cat === 'image') {
+    body.innerHTML = `<img src="${src}" alt="${escapeHtml(file.filename)}">`;
   } else if (cat === 'video') {
-    body.innerHTML = `<video controls src="${file.file_url}"></video>`;
+    body.innerHTML = `<video controls playsinline src="${src}"></video>`;
   } else if (cat === 'audio') {
-    body.innerHTML = `<audio controls src="${file.file_url}"></audio>`;
+    body.innerHTML = `<audio controls src="${src}"></audio>`;
   } else if (cat === 'pdf') {
-    body.innerHTML = `<iframe src="${file.file_url}" title="${escapeHtml(file.filename)}"></iframe>`;
+    body.innerHTML = `<iframe src="${src}" title="${escapeHtml(file.filename)}"></iframe>`;
   } else if (cat === 'office') {
     // Use Microsoft Office Online Viewer
-    const encodedUrl = encodeURIComponent(file.file_url);
+    const encodedUrl = encodeURIComponent(url);
     body.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}" title="${escapeHtml(file.filename)}"></iframe>`;
   } else if (cat === 'text') {
-    body.innerHTML = `<iframe src="${file.file_url}" title="${escapeHtml(file.filename)}"></iframe>`;
+    body.innerHTML = `<iframe src="${src}" title="${escapeHtml(file.filename)}"></iframe>`;
   } else {
     body.innerHTML = `
       <div class="fv-download">
         <div style="font-size:48px;margin-bottom:12px">${getFileIcon(file.filename)}</div>
         <div style="color:var(--text-secondary);margin-bottom:8px">${escapeHtml(file.filename)}</div>
-        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${formatFileSize(file.file_size)}</div>
-        <a href="${file.file_url}" target="_blank" download="${escapeHtml(file.filename)}">⬇ DESCARGAR ARCHIVO</a>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${formatFileSize(Number(file.file_size) || 0)}</div>
+        <a href="${src}" target="_blank" rel="noopener noreferrer" download="${escapeHtml(file.filename)}">⬇ DESCARGAR ARCHIVO</a>
       </div>
     `;
   }
@@ -3827,11 +3913,13 @@ async function deleteFile(fileId) {
   const file = uploadedFiles.find(f => f.id === fileId);
   if (!file) return;
   try {
-    await db.storage.from('crisis-files').remove([file.file_path]);
-    await db.from('files').delete().eq('id', fileId);
+    const { error: storageError } = await db.storage.from('crisis-files').remove([file.file_path]);
+    if (storageError) throw storageError;
+    const { error: dbError } = await db.from('files').delete().eq('id', fileId);
+    if (dbError) throw dbError;
     showToast('ARCHIVO ELIMINADO', file.filename, 'amber');
   } catch (e) {
-    showToast('ERROR', e.message, 'red');
+    showToast('ERROR AL ELIMINAR', 'No se eliminó ' + file.filename + ': ' + (e.message || e), 'red');
   }
 }
 
@@ -3844,15 +3932,15 @@ function renderFilesList(containerId) {
     return;
   }
   container.innerHTML = visible.map(f => `
-    <div class="uploaded-file-card" onclick="openFileViewer(${f.id})">
+    <div class="uploaded-file-card" onclick="openFileViewer(${escapeHtml(JSON.stringify(f.id))})">
       <div class="uf-header">
         <div class="uf-icon">${getFileIcon(f.filename)}</div>
         <div class="uf-info">
           <div class="uf-name">${escapeHtml(f.filename)}</div>
-          <div class="uf-meta">${formatFileSize(f.file_size)} · ${escapeHtml(f.uploaded_by||'—')}</div>
-          ${(f.target_tags && f.target_tags.length > 0) ? `<div class="uf-tags">→ [${f.target_tags.join(', ')}]</div>` : '<div class="uf-tags" style="color:var(--text-dim)">→ PÚBLICO</div>'}
+          <div class="uf-meta">${formatFileSize(Number(f.file_size) || 0)} · ${escapeHtml(f.uploaded_by||'—')}</div>
+          ${(f.target_tags && f.target_tags.length > 0) ? `<div class="uf-tags">→ [${escapeHtml(f.target_tags.join(', '))}]</div>` : '<div class="uf-tags" style="color:var(--text-dim)">→ PÚBLICO</div>'}
         </div>
-        ${session.isDirector ? `<button class="uf-delete" onclick="event.stopPropagation();deleteFile(${f.id})" title="Eliminar archivo">×</button>` : ''}
+        ${session.isDirector ? `<button class="uf-delete" onclick="event.stopPropagation();deleteFile(${escapeHtml(JSON.stringify(f.id))})" title="Eliminar archivo">×</button>` : ''}
       </div>
     </div>
   `).join('');
@@ -3893,11 +3981,14 @@ async function uploadAvatar(input) {
     const { error: uploadError } = await db.storage.from('crisis-files').upload(path, file, { upsert: true });
     if (uploadError) throw uploadError;
     const { data: urlData } = db.storage.from('crisis-files').getPublicUrl(path);
-    await db.from('participants').update({ avatar_url: urlData.publicUrl }).eq('id', session.participantRow.id);
-    document.getElementById('topbar-avatar-content').innerHTML = `<img src="${urlData.publicUrl}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+    const avatarUrl = safeUrl(urlData.publicUrl);
+    if (!avatarUrl) throw new Error('URL de avatar no válida');
+    const { error: updateError } = await db.from('participants').update({ avatar_url: avatarUrl }).eq('id', session.participantRow.id);
+    if (updateError) throw updateError;
+    document.getElementById('topbar-avatar-content').innerHTML = `<img src="${escapeHtml(avatarUrl)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
     showToast('AVATAR ACTUALIZADO', 'Tu imagen es visible en el ejercicio', 'green');
   } catch (e) {
-    showToast('ERROR AVATAR', e.message, 'red');
+    showToast('ERROR AVATAR', 'No se actualizó el avatar: ' + (e.message || e), 'red');
   }
   input.value = '';
 }
